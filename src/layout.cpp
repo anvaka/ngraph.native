@@ -150,7 +150,7 @@ void Layout::updateSpringForce(Body *source) {
 
   Body *body1 = source;
   for (int i = 0; i < source->springs.size(); ++i){
-    Body *body2 = &(bodies[i]);
+    Body *body2 = &(bodies[source->springs[i]]);
 
     double dx = body2->pos.x - body1->pos.x;
     double dy = body2->pos.y - body1->pos.y;

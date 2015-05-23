@@ -13,7 +13,7 @@
 #include "Random.h"
 #include <cmath>
 
-QuadTreeNode *QuadTree::createRootNode(std::vector<Body> bodies) {
+QuadTreeNode *QuadTree::createRootNode(std::vector<Body> &bodies) {
   double x1 = INT32_MAX, x2 = INT32_MIN,
   y1 = INT32_MAX, y2 = INT32_MIN,
   z1 = INT32_MAX, z2 = INT32_MIN;
@@ -148,7 +148,7 @@ void QuadTree::insert(Body *body, QuadTreeNode *node){
   }
 }
 
-void QuadTree::insertBodies(std::vector<Body> bodies) {
+void QuadTree::insertBodies(std::vector<Body> &bodies) {
   treeNodes.reset();
   root = createRootNode(bodies);
   if (bodies.size() > 0) {

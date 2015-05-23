@@ -17,7 +17,7 @@ struct LayoutSettings {
   double stableThreshold = 0.009;
   double gravity = -1.2;
   double theta = 0.8;
-  double dragCoeff = 0.2;
+  double dragCoeff = 0.02;
   double springCoeff = 0.0002;
   double springLength = 80;
   double timeStep = 20;
@@ -27,22 +27,22 @@ struct Vector3 {
   double x = 0.0;
   double y = 0.0;
   double z = 0.0;
-  
+
   Vector3(double _x, double _y, double _z) :
   x(_x), y(_y), z(_z) {};
-  
+
   Vector3() {}
-  
+
   void reset () {
     x = y = z = 0;
   }
-  
+
   bool sameAs(const Vector3 &other) {
-    
+
     double dx = std::abs(x - other.x);
     double dy = std::abs(y - other.y);
     double dz = std::abs(z - other.z);
-    
+
     return (dx < 1e-8 && dy < 1e-8 && dz < 1e-8);
   }
 };
@@ -55,18 +55,16 @@ struct Body {
   double mass = 1.0;
 
   vector<int> springs;
-  
-  Body() {}
+  Body() { }
   Body(Vector3 _pos): pos(_pos), prevPos(_pos) {}
-  
+
   void setPos(const Vector3 &_pos) {
     pos = _pos;
     prevPos = _pos;
   }
-  
+
   bool positionInitialized() {
     return pos.x != 0 || pos.y != 0 || pos.z != 0;
   }
 };
-
 #endif
