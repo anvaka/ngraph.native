@@ -16,10 +16,10 @@ using namespace std;
 struct LayoutSettings {
   double stableThreshold = 0.009;
   double gravity = -1.2;
-  double theta = 0.8;
+  double theta = 1.2;
   double dragCoeff = 0.02;
-  double springCoeff = 0.0002;
-  double springLength = 80;
+  double springCoeff = 0.0008;
+  double springLength = 30;
   double timeStep = 20;
 };
 
