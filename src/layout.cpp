@@ -12,7 +12,65 @@
 #include <cmath>
 #include <map>
 
-Layout::Layout(int* links, long size) :tree(settings) {
+Layout::Layout() :tree(settings) {}
+
+void Layout::init(int* links, long size) {
+  initBodies(links, size);
+
+  // Now the graph is initialized. Let's make sure we get
+  // good initial positions:
+  setDefaultBodiesPositions();
+}
+
+void Layout::init(int *links, long linksSize, int *initialPositions, long posSize) {
+  initBodies(links, linksSize);
+  if (bodies.size() * 3 != posSize) {
+    cout << "There are " << bodies.size() << " nodes in the graph and " << endl
+    << posSize << " positions. It is expected that each body has exactly" << endl
+    << "3 Int32 records in the positions file (x, y, z). However this is not the case" << endl
+    << "here. Are you sure you are loading correct positions for this graph file?";
+    throw "Positions file mismatch";
+  }
+
+  loadPositionsFromArray(initialPositions);
+}
+
+void Layout::loadPositionsFromArray(int *initialPositions) {
+  for (int i = 0; i < bodies.size(); ++i) {
+    Vector3 initialPos(initialPositions[i * 3 + 0], //+ Random::nextDouble(),
+                       initialPositions[i * 3 + 1], //+ Random::nextDouble(),
+                       initialPositions[i * 3 + 2] //+ Random::nextDouble()
+                       );
+    bodies[i].setPos(initialPos);
+  }
+}
+
+void Layout::setDefaultBodiesPositions() {
+  size_t maxBodyId = bodies.size();
+  for (int i = 0; i < maxBodyId; ++i) {
+    Body *body = &(bodies[i]);
+    if (!body->positionInitialized()) {
+      Vector3 initialPos(Random::nextDouble() * log(maxBodyId) * 100,
+                         Random::nextDouble() * log(maxBodyId) * 100,
+                         Random::nextDouble() * log(maxBodyId) * 100);
+      bodies[i].setPos(initialPos);
+    }
+    Vector3 *sourcePos = &(body->pos);
+    // init neighbours position:
+    for (int j = 0; j < body->springs.size(); ++j) {
+      if (!bodies[body->springs[j]].positionInitialized()) {
+        Vector3 neighbourPosition(
+                                  sourcePos->x + Random::next(settings.springLength) - settings.springLength/2,
+                                  sourcePos->y + Random::next(settings.springLength) - settings.springLength/2,
+                                  sourcePos->z + Random::next(settings.springLength) - settings.springLength/2
+                                  );
+        bodies[j].setPos(neighbourPosition);
+      }
+    }
+  }
+}
+
+void Layout::initBodies(int* links, long size) {
   int from = 0;
   int maxBodyId = 0;
 
@@ -48,31 +106,6 @@ Layout::Layout(int* links, long size) :tree(settings) {
       int to = index - 1;
       fromBody->springs.push_back(to);
     }
-  }
-
-  // Now the graph is initialized. Let's make sure we get
-  // good initial positions:
-  for (int i = 0; i < maxBodyId + 1; ++i) {
-    Body *body = &(bodies[i]);
-    if (!body->positionInitialized()) {
-      Vector3 initialPos(Random::nextDouble() * log(maxBodyId + 1) * 100,
-                         Random::nextDouble() * log(maxBodyId + 1) * 100,
-                         Random::nextDouble() * log(maxBodyId + 1) * 100);
-      bodies[i].setPos(initialPos);
-    }
-    Vector3 *sourcePos = &(body->pos);
-    // init neighbours position:
-    for (int j = 0; j < body->springs.size(); ++j) {
-      if (!bodies[body->springs[j]].positionInitialized()) {
-        Vector3 neighbourPosition(
-                                  sourcePos->x + Random::next(settings.springLength) - settings.springLength/2,
-                                  sourcePos->y + Random::next(settings.springLength) - settings.springLength/2,
-                                  sourcePos->z + Random::next(settings.springLength) - settings.springLength/2
-                                  );
-        bodies[j].setPos(neighbourPosition);
-      }
-    }
-
   }
 }
 

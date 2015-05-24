@@ -24,9 +24,15 @@ class Layout {
   double integrate();
   void updateDragForce(Body *body);
   void updateSpringForce(Body *spring);
+
+  void initBodies(int *links, long size);
+  void setDefaultBodiesPositions();
+  void loadPositionsFromArray(int *initialPositions);
   
 public:
-  Layout(int *links, long size);
+  Layout();
+  void init(int *links, long linksSize, int *initialPositions, long posSize);
+  void init(int *links, long size);
   bool step();
   size_t getBodiesCount();
   vector<Body> *getBodies() { return &bodies; };
