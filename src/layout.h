@@ -12,10 +12,12 @@
 #include <vector>
 #include "primitives.h"
 #include "quadTree.h"
+#include "Random.h"
 
 using namespace std;
 
 class Layout {
+  Random random;
   vector<Body> bodies;
   LayoutSettings settings;
   QuadTree tree;

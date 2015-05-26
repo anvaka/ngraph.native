@@ -67,4 +67,6 @@ struct Body {
     return pos.x != 0 || pos.y != 0 || pos.z != 0;
   }
 };
+class NotEnoughQuadSpaceException: public exception {};
+
 #endif

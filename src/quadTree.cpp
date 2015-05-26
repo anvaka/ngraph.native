@@ -10,8 +10,9 @@
 //
 
 #include "quadTree.h"
-#include "Random.h"
 #include <cmath>
+
+NotEnoughQuadSpaceException  _NotEnoughQuadSpaceException;
 
 QuadTreeNode *QuadTree::createRootNode(std::vector<Body> &bodies) {
   double x1 = INT32_MAX, x2 = INT32_MIN,
@@ -120,7 +121,7 @@ void QuadTree::insert(Body *body, QuadTreeNode *node) {
     if (oldBody->pos.sameAs(body->pos)) {
       int retriesCount = 3;
       do {
-        double offset = Random::nextDouble(),
+        double offset = random.nextDouble(),
         dx = (node->right - node->left) * offset,
         dy = (node->bottom - node->top) * offset,
         dz = (node->front - node->back) * offset;
@@ -134,10 +135,10 @@ void QuadTree::insert(Body *body, QuadTreeNode *node) {
 
       if (retriesCount == 0 && oldBody->pos.sameAs(body->pos)) {
         // This is very bad, we ran out of precision.
-        // if we do not return from the method we'll get into
-        // infinite loop here. So we sacrifice correctness of layout, and keep the app running
-        // Next layout iteration should get larger bounding box in the first step and fix this
-        throw "Nooo"; // TODO: handle this up
+        // We cannot proceed under current root's constraints, so let's
+        // throw - this will cause parent to give bigger space for the root
+        // node, and hopefully we can fit on the subsequent iteration.
+        throw _NotEnoughQuadSpaceException;
       }
     }
     // Next iteration should subdivide node further.
@@ -147,14 +148,20 @@ void QuadTree::insert(Body *body, QuadTreeNode *node) {
 }
 
 void QuadTree::insertBodies(std::vector<Body> &bodies) {
-  treeNodes.reset();
-  root = createRootNode(bodies);
-  if (bodies.size() > 0) {
-    root->body = &bodies[0];
-  }
+  try {
+    treeNodes.reset();
+    root = createRootNode(bodies);
+    if (bodies.size() > 0) {
+      root->body = &bodies[0];
+    }
 
-  for (int i = 1; i < bodies.size(); ++i) {
-    insert(&(bodies[i]), root);
+    for (int i = 1; i < bodies.size(); ++i) {
+      insert(&(bodies[i]), root);
+    }
+    return;
+  } catch(NotEnoughQuadSpaceException &e) {
+    // well we tried, but some bodies ended up on the same
+    // spot, cannot do anything, but hope that next iteration will fix it
   }
 };
 
@@ -183,9 +190,9 @@ void QuadTree::updateBodyForce(Body *sourceBody) {
 
       if (r == 0) {
         // Poor man's protection against zero distance.
-        dx = (Random::nextDouble() - 0.5) / 50;
-        dy = (Random::nextDouble() - 0.5) / 50;
-        dz = (Random::nextDouble() - 0.5) / 50;
+        dx = (random.nextDouble() - 0.5) / 50;
+        dy = (random.nextDouble() - 0.5) / 50;
+        dz = (random.nextDouble() - 0.5) / 50;
         r = sqrt(dx * dx + dy * dy + dz * dz);
       }
 
@@ -210,9 +217,9 @@ void QuadTree::updateBodyForce(Body *sourceBody) {
       if (r == 0) {
         // Sorry about code duplication. I don't want to create many functions
         // right away. Just want to see performance first.
-        dx = (Random::nextDouble() - 0.5) / 50;
-        dy = (Random::nextDouble() - 0.5) / 50;
-        dz = (Random::nextDouble() - 0.5) / 50;
+        dx = (random.nextDouble() - 0.5) / 50;
+        dy = (random.nextDouble() - 0.5) / 50;
+        dz = (random.nextDouble() - 0.5) / 50;
         r = sqrt(dx * dx + dy * dy + dz * dz);
       }
       // If s / r < θ, treat this internal node as a single body, and calculate the

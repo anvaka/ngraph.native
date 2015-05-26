@@ -7,7 +7,6 @@
 //
 
 #include "layout.h"
-#include "Random.h"
 #include <iostream>
 #include <cmath>
 #include <map>
@@ -15,6 +14,7 @@
 Layout::Layout() :tree(settings) {}
 
 void Layout::init(int* links, long size) {
+  random = Random(42);
   initBodies(links, size);
 
   // Now the graph is initialized. Let's make sure we get
@@ -50,9 +50,9 @@ void Layout::setDefaultBodiesPositions() {
   for (int i = 0; i < maxBodyId; ++i) {
     Body *body = &(bodies[i]);
     if (!body->positionInitialized()) {
-      Vector3 initialPos(Random::nextDouble() * log(maxBodyId) * 100,
-                         Random::nextDouble() * log(maxBodyId) * 100,
-                         Random::nextDouble() * log(maxBodyId) * 100);
+      Vector3 initialPos(random.nextDouble() * log(maxBodyId) * 100,
+                         random.nextDouble() * log(maxBodyId) * 100,
+                         random.nextDouble() * log(maxBodyId) * 100);
       bodies[i].setPos(initialPos);
     }
     Vector3 *sourcePos = &(body->pos);
@@ -60,9 +60,9 @@ void Layout::setDefaultBodiesPositions() {
     for (int j = 0; j < body->springs.size(); ++j) {
       if (!bodies[body->springs[j]].positionInitialized()) {
         Vector3 neighbourPosition(
-                                  sourcePos->x + Random::next(settings.springLength) - settings.springLength/2,
-                                  sourcePos->y + Random::next(settings.springLength) - settings.springLength/2,
-                                  sourcePos->z + Random::next(settings.springLength) - settings.springLength/2
+                                  sourcePos->x + random.next(settings.springLength) - settings.springLength/2,
+                                  sourcePos->y + random.next(settings.springLength) - settings.springLength/2,
+                                  sourcePos->z + random.next(settings.springLength) - settings.springLength/2
                                   );
         bodies[j].setPos(neighbourPosition);
       }
@@ -106,6 +106,11 @@ void Layout::initBodies(int* links, long size) {
       int to = index - 1;
       fromBody->springs.push_back(to);
     }
+  }
+  // Finally, update body mas based on total number of neighbours:
+  for (int i = 0; i < bodies.size(); i++) {
+    Body *body = &(bodies[i]);
+    body->mass = 1 + body->springs.size()/3.0;
   }
 }
 
@@ -191,9 +196,9 @@ void Layout::updateSpringForce(Body *source) {
     double r = sqrt(dx * dx + dy * dy + dz * dz);
 
     if (r == 0) {
-      dx = (Random::nextDouble() - 0.5) / 50;
-      dy = (Random::nextDouble() - 0.5) / 50;
-      dz = (Random::nextDouble() - 0.5) / 50;
+      dx = (random.nextDouble() - 0.5) / 50;
+      dy = (random.nextDouble() - 0.5) / 50;
+      dz = (random.nextDouble() - 0.5) / 50;
       r = sqrt(dx * dx + dy * dy + dz * dz);
     }
 

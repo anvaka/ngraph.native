@@ -11,6 +11,7 @@
 
 #include <vector>
 #include "primitives.h"
+#include "Random.h"
 
 struct QuadTreeNode {
   QuadTreeNode *quads[8];
@@ -56,7 +57,7 @@ public:
 };
 
 class QuadTree {
-  double random();
+  Random random;
   const LayoutSettings *layoutSettings;
   NodePool treeNodes;
   QuadTreeNode *root;
@@ -65,6 +66,7 @@ class QuadTree {
 public:
   QuadTree(const LayoutSettings& _settings) {
     layoutSettings = &_settings;
+    random = Random(1984);
   }
   void insertBodies(std::vector<Body> &bodies);
   void updateBodyForce(Body *sourceBody);
