@@ -24,7 +24,7 @@ struct QuadTreeNode {
   double bottom;
   double front;
   double back;
-  
+ 
   void reset() {
     quads[0] = quads[1] = quads[2] = quads[3] = quads[4] = quads[5] = quads[6] = quads[7] = NULL;
     body = NULL;
@@ -35,13 +35,13 @@ struct QuadTreeNode {
 };
 
 class NodePool {
-  int currentAvailable = 0;
+  size_t currentAvailable = 0;
   std::vector<QuadTreeNode *> pool;
 public:
   void reset() {
     currentAvailable = 0;
   }
-  
+
   QuadTreeNode* get() {
     QuadTreeNode *result;
     if (currentAvailable < pool.size()) {

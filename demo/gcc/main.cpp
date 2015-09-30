@@ -27,10 +27,10 @@ void save(int i, std::vector<Body> *bodies) {
     outfile.close();
 }
 
-typedef struct {
+struct FileContent {
     int *content;
-    long size;
-} FileContent;
+    size_t size;
+};
 
 FileContent readFile(const char *fileName) {
     streampos size;

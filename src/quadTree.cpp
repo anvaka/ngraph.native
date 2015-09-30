@@ -155,7 +155,7 @@ void QuadTree::insertBodies(std::vector<Body> &bodies) {
       root->body = &bodies[0];
     }
 
-    for (int i = 1; i < bodies.size(); ++i) {
+    for (size_t i = 1; i < bodies.size(); ++i) {
       insert(&(bodies[i]), root);
     }
     return;
@@ -169,7 +169,7 @@ void QuadTree::updateBodyForce(Body *sourceBody) {
   std::vector<QuadTreeNode *> queue;
   int queueLength = 1;
   int shiftIndex = 0;
-  int pushIndex = 0;
+  size_t pushIndex = 0;
   double v, dx, dy, dz, r;
   double fx = 0, fy = 0, fz = 0;
   queue.push_back(root);
