@@ -11,10 +11,10 @@ using namespace std;
 
 void save(int i, std::vector<Body> *bodies) {
     std::stringstream ss;
-    
+
     ss << i << ".bin";
     std::ofstream outfile (ss.str(), std::ofstream::binary);
-    
+
     char block[3 * 4];
     int *triplet = (int *)&block;
     for (vector<Body>::iterator body = bodies->begin() ; body != bodies->end(); ++body) {
@@ -27,10 +27,10 @@ void save(int i, std::vector<Body> *bodies) {
     outfile.close();
 }
 
-typedef struct {
+struct FileContent {
     int *content;
-    long size;
-} FileContent;
+    size_t size;
+};
 
 FileContent readFile(const char *fileName) {
     streampos size;
@@ -82,10 +82,10 @@ int main(int argc, const char * argv[]) {
     const char * graphFileName = argv[1];
     cout << argv[0] << endl;
     srand(42);
-    
+
     cout << "Loading links from " << graphFileName << "... " << endl;
     FileContent graphFile = readFile(graphFileName);
-    
+
     Layout graphLayout;
     int startFrom = 0;
     if (argc < 3) {
@@ -102,8 +102,8 @@ int main(int argc, const char * argv[]) {
         cout << "Loaded " << graphLayout.getBodiesCount() << " bodies;" << endl;
     }
     cout << "Starting layout from " << startFrom << " iteration;" << endl;
-    
-    for (int i = startFrom; i < 10000; ++i) {
+
+    for (int i = startFrom; i <= 10000; ++i) {
         cout << "Step " << i << endl;
         bool done = graphLayout.step();
         if (done) {
@@ -114,6 +114,6 @@ int main(int argc, const char * argv[]) {
             save(i, graphLayout.getBodies());
         }
     }
-    
+
     delete[] graphFile.content;
 }

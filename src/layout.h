@@ -33,7 +33,7 @@ class Layout {
   
 public:
   Layout();
-  void init(int *links, long linksSize, int *initialPositions, long posSize);
+  void init(int *links, long linksSize, int *initialPositions, size_t posSize);
   void init(int *links, long size);
   bool step();
   size_t getBodiesCount();

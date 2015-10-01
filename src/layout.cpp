@@ -22,7 +22,7 @@ void Layout::init(int* links, long size) {
   setDefaultBodiesPositions();
 }
 
-void Layout::init(int *links, long linksSize, int *initialPositions, long posSize) {
+void Layout::init(int *links, long linksSize, int *initialPositions, size_t posSize) {
   initBodies(links, linksSize);
   if (bodies.size() * 3 != posSize) {
     cout << "There are " << bodies.size() << " nodes in the graph and " << endl
@@ -36,7 +36,7 @@ void Layout::init(int *links, long linksSize, int *initialPositions, long posSiz
 }
 
 void Layout::loadPositionsFromArray(int *initialPositions) {
-  for (int i = 0; i < bodies.size(); ++i) {
+  for (size_t i = 0; i < bodies.size(); ++i) {
     Vector3 initialPos(initialPositions[i * 3 + 0], //+ Random::nextDouble(),
                        initialPositions[i * 3 + 1], //+ Random::nextDouble(),
                        initialPositions[i * 3 + 2] //+ Random::nextDouble()
@@ -47,7 +47,7 @@ void Layout::loadPositionsFromArray(int *initialPositions) {
 
 void Layout::setDefaultBodiesPositions() {
   size_t maxBodyId = bodies.size();
-  for (int i = 0; i < maxBodyId; ++i) {
+  for (size_t i = 0; i < maxBodyId; ++i) {
     Body *body = &(bodies[i]);
     if (!body->positionInitialized()) {
       Vector3 initialPos(random.nextDouble() * log(maxBodyId) * 100,
@@ -57,7 +57,7 @@ void Layout::setDefaultBodiesPositions() {
     }
     Vector3 *sourcePos = &(body->pos);
     // init neighbours position:
-    for (int j = 0; j < body->springs.size(); ++j) {
+    for (size_t j = 0; j < body->springs.size(); ++j) {
       if (!bodies[body->springs[j]].positionInitialized()) {
         Vector3 neighbourPosition(
                                   sourcePos->x + random.next(settings.springLength) - settings.springLength/2,
@@ -109,7 +109,7 @@ void Layout::initBodies(int* links, long size) {
     }
   }
   // Finally, update body mas based on total number of neighbours:
-  for (int i = 0; i < bodies.size(); i++) {
+  for (size_t i = 0; i < bodies.size(); i++) {
     Body *body = &(bodies[i]);
     body->mass = 1 + (body->springs.size() + body->incomingCount)/3.0;
   }
@@ -129,14 +129,18 @@ bool Layout::step() {
 void Layout::accumulate() {
   tree.insertBodies(bodies);
 
-  for (vector<Body>::iterator body = bodies.begin() ; body != bodies.end(); ++body) {
+  #pragma omp parallel for
+  for (size_t i = 0; i < bodies.size(); i++) {
+    Body* body = &bodies[i];
     body->force.reset();
 
     tree.updateBodyForce(&(*body));
     updateDragForce(&(*body));
   }
 
-  for (vector<Body>::iterator body = bodies.begin() ; body != bodies.end(); ++body) {
+  #pragma omp parallel for
+  for (size_t i = 0; i < bodies.size(); i++) {
+    Body* body = &bodies[i];
     updateSpringForce(&(*body));
   }
 }
@@ -147,7 +151,9 @@ double Layout::integrate() {
   dz = 0, tz = 0,
   timeStep = settings.timeStep;
 
-  for (vector<Body>::iterator body = bodies.begin() ; body != bodies.end(); ++body) {
+  #pragma omp parallel for
+  for (size_t i = 0; i < bodies.size(); i++) {
+    Body* body = &bodies[i];
     double coeff = timeStep / body->mass;
 
     body->velocity.x += coeff * body->force.x;
@@ -188,7 +194,7 @@ void Layout::updateDragForce(Body *body) {
 void Layout::updateSpringForce(Body *source) {
 
   Body *body1 = source;
-  for (int i = 0; i < source->springs.size(); ++i){
+  for (size_t i = 0; i < source->springs.size(); ++i){
     Body *body2 = &(bodies[source->springs[i]]);
 
     double dx = body2->pos.x - body1->pos.x;

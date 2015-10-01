@@ -1,2 +1,2 @@
 #!/bin/sh
-g++ -O3 -std=c++11 ./demo/gcc/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
+g++ -O3 -fopenmp -Wall -std=c++11 ./demo/gcc/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
