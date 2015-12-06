@@ -28,6 +28,7 @@ class Layout {
   void updateSpringForce(Body *spring);
 
   void initBodies(int *links, long size);
+
   void setDefaultBodiesPositions();
   void loadPositionsFromArray(int *initialPositions);
   
@@ -35,6 +36,7 @@ public:
   Layout();
   void init(int *links, long linksSize, int *initialPositions, size_t posSize);
   void init(int *links, long size);
+  void setBodiesWeight(int *weights, long size);
   bool step();
   size_t getBodiesCount();
   vector<Body> *getBodies() { return &bodies; };

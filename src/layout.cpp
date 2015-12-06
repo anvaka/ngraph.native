@@ -108,11 +108,23 @@ void Layout::initBodies(int* links, long size) {
       bodies[to].incomingCount += 1;
     }
   }
+
   // Finally, update body mas based on total number of neighbours:
   for (size_t i = 0; i < bodies.size(); i++) {
     Body *body = &(bodies[i]);
     body->mass = 1 + (body->springs.size() + body->incomingCount)/3.0;
   }
+}
+
+void Layout::setBodiesWeight(int *weights, long size) {
+    if (bodies.size() != size) {
+        throw "Bodies weight should be equal to size of the bodies array. Make sure to call initBodies() first";
+    }
+
+    for (size_t i = 0; i < bodies.size(); i++) {
+        Body *body = &(bodies[i]);
+        body->mass = weights[i];
+    }
 }
 
 size_t Layout::getBodiesCount() {
