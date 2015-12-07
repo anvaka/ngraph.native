@@ -123,7 +123,8 @@ int main(int argc, const char * argv[]) {
     if (weights != nullptr) {
         cout << "Detected weights.bin file in the current folder." << endl;
         cout << "Assuming each node has assigned body weight. Reading weights..." << endl;
-        graphLayout.setBodiesWeight(weights->content, weights->size);
+        cout << "Size: " << weights->size;
+        graphLayout.setBodiesWeight(weights->content);
     }
     
     cout << "Starting layout from " << startFrom << " iteration;" << endl;

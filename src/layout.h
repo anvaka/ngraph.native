@@ -36,7 +36,7 @@ public:
   Layout();
   void init(int *links, long linksSize, int *initialPositions, size_t posSize);
   void init(int *links, long size);
-  void setBodiesWeight(int *weights, long size);
+  void setBodiesWeight(int *weights);
   bool step();
   size_t getBodiesCount();
   vector<Body> *getBodies() { return &bodies; };

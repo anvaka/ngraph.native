@@ -71,6 +71,7 @@ void Layout::setDefaultBodiesPositions() {
 }
 
 void Layout::initBodies(int* links, long size) {
+  // FIXME: If there are no links in a graph, it will fail
   int from = 0;
   int maxBodyId = 0;
 
@@ -116,11 +117,10 @@ void Layout::initBodies(int* links, long size) {
   }
 }
 
-void Layout::setBodiesWeight(int *weights, long size) {
-    if (bodies.size() != size) {
-        throw "Bodies weight should be equal to size of the bodies array. Make sure to call initBodies() first";
-    }
-
+void Layout::setBodiesWeight(int *weights) {
+    // FIXME: Verify that size of the weights matches size of the bodies.
+    // Unfortunately current graph format does not properly store nodes without
+    // edges.
     for (size_t i = 0; i < bodies.size(); i++) {
         Body *body = &(bodies[i]);
         body->mass = weights[i];
