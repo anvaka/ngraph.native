@@ -162,8 +162,10 @@ double Layout::integrate() {
   dy = 0, ty = 0,
   dz = 0, tz = 0,
   timeStep = settings.timeStep;
-
-  #pragma omp parallel for
+ 
+//dx should be private or defined inside loop
+ //tx need to be reduction variable, or its value will be unpredictable.
+  #pragma omp parallel for reduction(+:tx,ty,tz) private(dx,dy,dz)
   for (size_t i = 0; i < bodies.size(); i++) {
     Body* body = &bodies[i];
     double coeff = timeStep / body->mass;
