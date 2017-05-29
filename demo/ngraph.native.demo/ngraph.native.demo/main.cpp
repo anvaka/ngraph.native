@@ -12,10 +12,10 @@ using namespace std;
 
 void save(int i, std::vector<Body> *bodies) {
     std::stringstream ss;
-    
+
     ss << i << ".bin";
     std::ofstream outfile (ss.str(), std::ofstream::binary);
-    
+
     char block[3 * 4];
     int *triplet = (int *)&block;
     for (vector<Body>::iterator body = bodies->begin() ; body != bodies->end(); ++body) {
@@ -76,15 +76,15 @@ int main(int argc, const char * argv[]) {
         << "Where" << endl
         << " `links.bin` is a path to the serialized graph. See " << endl
         << "    https://github.com/anvaka/ngraph.tobinary for format description" << endl
-        << "  `positoins.bin` is optional file with previously saved positions. " << endl
-        << "    This file should match `links.bin` graph, otherwis bad things " << endl
+        << "  `positions.bin` is optional file with previously saved positions. " << endl
+        << "    This file should match `links.bin` graph, otherwise bad things " << endl
         << "    will happen" << endl;
         return -1;
     }
 
     const char * graphFileName = argv[1];
     srand(42);
-    
+
     char cwd[1024];
     if (getcwd(cwd, 1024) != NULL) {
         cout << cwd << endl;
@@ -95,10 +95,10 @@ int main(int argc, const char * argv[]) {
     cout << "Loading links from " << graphFileName << "... " << endl;
     FileContent *graphFilePtr = readFile(graphFileName);
     if (graphFilePtr == nullptr) {
-        throw "Cou'd not read links file";
+        throw "Could not read links file";
     }
     FileContent graphFile = *graphFilePtr;
-    
+
     Layout graphLayout;
     int startFrom = 0;
     if (argc < 3) {
@@ -126,9 +126,9 @@ int main(int argc, const char * argv[]) {
         cout << "Size: " << weights->size;
         graphLayout.setBodiesWeight(weights->content);
     }
-    
+
     cout << "Starting layout from " << startFrom << " iteration;" << endl;
-    
+
     for (int i = startFrom; i < 10000; ++i) {
         cout << "Step " << i << endl;
         bool done = graphLayout.step();
@@ -140,6 +140,6 @@ int main(int argc, const char * argv[]) {
             save(i, graphLayout.getBodies());
         }
     }
-    
+
     delete[] graphFile.content;
 }
