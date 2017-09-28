@@ -175,7 +175,11 @@ void CLayout::load_positions(const fs::path & pathPositionsFile)
 {
     const auto positions = ReadFile(pathPositionsFile);
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         Vector3 pos(
             positions[i * 3 + 0],
@@ -200,7 +204,11 @@ void CLayout::load_weights(const fs::path & pathWeightsFile)
     }
 
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         m_vecBodies[i].set_mass(weights[i]);
     }
@@ -211,7 +219,11 @@ void CLayout::init_positions()
     const size_t maxBodyId = m_vecBodies.size();
 
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         auto& body = m_vecBodies[i];
         if (!body.get_position().is_initialized())
@@ -227,7 +239,11 @@ void CLayout::init_positions()
         auto& springs = body.get_springs();
         // init neighbours position:
         #pragma omp parallel for
+        #if _OPENMP >= 200805
+        for (size_t j = 0; j < springs.size(); ++j)
+        #else
         for (int j = 0; j < springs.size(); ++j)
+        #endif
         {
             if (!m_vecBodies[springs[j]].get_position().is_initialized())
             {
@@ -245,7 +261,11 @@ void CLayout::init_positions()
 void CLayout::init_weights()
 {
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         auto& body = m_vecBodies[i];
         body.set_mass(1 + (body.get_springs().size() + body.get_incoming_links()) / 3.0);
@@ -257,7 +277,11 @@ void CLayout::accumulate()
     m_Tree.insertBodies(m_vecBodies);
 
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         CBody& body = m_vecBodies[i];
         body.reset_force();
@@ -267,7 +291,11 @@ void CLayout::accumulate()
     }
 
     #pragma omp parallel for
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         updateSpringForce(m_vecBodies[i]);
     }
@@ -283,7 +311,11 @@ double CLayout::integrate()
     //dx should be private or defined inside loop
     //tx need to be reduction variable, or its value will be unpredictable.
     #pragma omp parallel for reduction(+:tx,ty,tz) private(dx,dy,dz)
+    #if _OPENMP >= 200805
+    for (size_t i = 0; i < m_vecBodies.size(); ++i)
+    #else
     for (int i = 0; i < m_vecBodies.size(); ++i)
+    #endif
     {
         CBody& body = m_vecBodies[i];
         const auto& force = body.get_force();
