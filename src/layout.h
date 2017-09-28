@@ -1,45 +1,50 @@
-//
-//  layout.h
-//  layout++
-//
-//  Created by Andrei Kashcha on 5/21/15.
-//  Copyright (c) 2015 Andrei Kashcha. All rights reserved.
-//
+#pragma once
 
-#ifndef __layout____layout__
-#define __layout____layout__
-
-#include <vector>
-#include "primitives.h"
-#include "quadTree.h"
+#include "body.h"
 #include "Random.h"
+#include "primitives.h"
+#include "Octree.h"
 
-using namespace std;
-
-class Layout {
-  Random random;
-  vector<Body> bodies;
-  LayoutSettings settings;
-  QuadTree tree;
-  
-  void accumulate();
-  double integrate();
-  void updateDragForce(Body *body);
-  void updateSpringForce(Body *spring);
-
-  void initBodies(int *links, long size);
-
-  void setDefaultBodiesPositions();
-  void loadPositionsFromArray(int *initialPositions);
-  
+class CLayout
+{
 public:
-  Layout();
-  void init(int *links, long linksSize, int *initialPositions, size_t posSize);
-  void init(int *links, long size);
-  void setBodiesWeight(int *weights);
-  bool step();
-  size_t getBodiesCount();
-  vector<Body> *getBodies() { return &bodies; };
-};
+    CLayout();
 
-#endif /* defined(__layout____layout__) */
+    bool step();
+
+    void serialize_to_file();
+
+    void serialize_to_file(size_t iteration);
+
+    const std::vector<CBody>& get_bodies() const;
+
+private:
+    void load_positions();
+
+    void load_weights();
+
+private:
+    void load_links(const fs::path& pathLinksFile);
+
+    void load_positions(const fs::path& pathPositionsFile);
+
+    void load_weights(const fs::path& pathWeightsFile);
+
+private:
+    void init_positions();
+
+    void init_weights();
+
+private:
+    void accumulate();
+
+    double integrate();
+
+    void updateSpringForce(CBody& source);
+
+    void updateDragForce(CBody& body);
+private:
+    CRandom m_Random;
+    std::vector<CBody> m_vecBodies;
+    COctree m_Tree;
+};

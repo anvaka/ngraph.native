@@ -3,4 +3,4 @@
 # brew install clang-omp
 # and use this line:
 # clang-omp++ -O3 -fopenmp -Wall -std=c++11 -I./src ./demo/ngraph.native.demo/ngraph.native.demo/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
-g++ -O3 -fopenmp -Wall -std=c++11 -I./src ./demo/gcc/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
+g++ -O3 -fopenmp -Wall -std=c++11 -I./src ./demo/gcc/main.cpp ./src/layout.cpp ./src/Octree.cpp ./src/application.cpp ./src/application_settings.cpp ./src/body.cpp -o layout++
