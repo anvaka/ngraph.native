@@ -3,15 +3,6 @@
 #include "Octree.h"
 
 #include <cmath>
-#include <immintrin.h>
-
-/*double sqrt13(double n)
-{
-    __asm {
-        fld n
-        fsqrt
-    }
-}*/
 
 COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
     double x1 = INT32_MAX, x2 = INT32_MIN,
