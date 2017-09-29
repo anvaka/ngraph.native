@@ -7,9 +7,10 @@ set(BOOST_ROOT "D:\\Source\\library\\boost_1_65_1")
 find_package(OpenMP)
 find_package(Boost REQUIRED)
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/src/ SOURCE)
+FILE(GLOB_RECURSE MY_HEADERS "include/*.h")
+FILE(GLOB MY_SOURCES "src/*.cpp")
 
-add_executable(${PROJECT_NAME} ${SOURCE})
+add_executable(${PROJECT_NAME} ${MY_SOURCES} ${MY_HEADERS})
 
 include_directories(include)
 
