@@ -1,8 +1,7 @@
 # ngraph.native
 
 C++ implementation of force-based layout from ngraph.<br>
-This is equivalent to<br>
-[ngraph.offline.layout](https://github.com/anvaka/ngraph.offline.layout)<br>
+This is equivalent to [ngraph.offline.layout](https://github.com/anvaka/ngraph.offline.layout)<br>
 Unfortunately I don't have bindings to nodejs (yet).
 
 # How to build:
