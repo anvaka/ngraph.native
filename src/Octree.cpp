@@ -53,7 +53,7 @@ COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
 }
 
 bool COctree::insert(CBody *body, COctreeNode *node) {
-    bool result = false;
+    bool result = true;
     if (!node->body) {
         const auto& pos = body->get_position();
         // This is internal node. Update the total mass of the node and center-of-mass.
@@ -161,7 +161,7 @@ void COctree::insertBodies(std::vector<CBody> &bodies) {
     }
 
     for (size_t i = 1; i < bodies.size(); ++i) {
-        if (insert(&(bodies[i]), root))
+        if (!insert(&(bodies[i]), root))
             return;
     }
 };
