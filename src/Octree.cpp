@@ -3,6 +3,15 @@
 #include "Octree.h"
 
 #include <cmath>
+#include <immintrin.h>
+
+/*double sqrt13(double n)
+{
+    __asm {
+        fld n
+        fsqrt
+    }
+}*/
 
 COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
     double x1 = INT32_MAX, x2 = INT32_MIN,
@@ -52,7 +61,8 @@ COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
     return root;
 }
 
-void COctree::insert(CBody *body, COctreeNode *node) {
+bool COctree::insert(CBody *body, COctreeNode *node) {
+    bool result = false;
     if (!node->body) {
         const auto& pos = body->get_position();
         // This is internal node. Update the total mass of the node and center-of-mass.
@@ -104,7 +114,7 @@ void COctree::insert(CBody *body, COctreeNode *node) {
         }
         else {
             // continue searching in this quadrant.
-            insert(body, child);
+            result = insert(body, child);
         }
     }
     else {
@@ -138,60 +148,65 @@ void COctree::insert(CBody *body, COctreeNode *node) {
                 // We cannot proceed under current root's constraints, so let's
                 // throw - this will cause parent to give bigger space for the root
                 // node, and hopefully we can fit on the subsequent iteration.
-                throw std::bad_alloc();
+                return false;
             }
         }
         // Next iteration should subdivide node further.
-        insert(oldBody, node);
-        insert(body, node);
+        result = insert(oldBody, node);
+        if (result)
+            result = insert(body, node);
     }
+
+    return result;
 }
 
 void COctree::insertBodies(std::vector<CBody> &bodies) {
-    try 
-    {
-        treeNodes.reset(bodies.size() * 8);
+    treeNodes.reset(bodies.size() * 8);
 
-        root = createRootNode(bodies);
+    root = createRootNode(bodies);
 
-        if (bodies.size() > 0) {
-            root->body = &bodies[0];
-        }
-
-        for (size_t i = 1; i < bodies.size(); ++i) {
-            insert(&(bodies[i]), root);
-        }
-        return;
+    if (bodies.size() > 0) {
+        root->body = &bodies[0];
     }
-    catch (const std::bad_alloc &e) 
-    {
-        // well we tried, but some bodies ended up on the same
-        // spot, cannot do anything, but hope that next iteration will fix it
+
+    for (size_t i = 1; i < bodies.size(); ++i) {
+        if (insert(&(bodies[i]), root))
+            return;
     }
 };
 
-void COctree::updateBodyForce(CBody& sourceBody) {
-    std::vector<COctreeNode *> queue;
-    int queueLength = 1;
+void COctree::updateBodyForce(CBody& sourceBody) 
+{
     int shiftIndex = 0;
     size_t pushIndex = 0;
     double v, dx, dy, dz, r;
     double fx = 0, fy = 0, fz = 0;
-    queue.push_back(root);
-    while (queueLength) {
-        COctreeNode *node = queue[shiftIndex];
-        CBody *body = node->body;
-        queueLength -= 1;
-        shiftIndex += 1;
+
+    int queueLength = 1;
+    std::vector<COctreeNode *> queue;
+    queue.reserve(9);
+    queue.emplace_back(root);
+
+    const auto& src_pos = sourceBody.get_position();
+
+    while (queueLength--) 
+    {
+        COctreeNode& node = (*queue[shiftIndex++]);
+        CBody *body = node.body;
+
         bool differentBody = (body != &sourceBody);
         if (body != NULL && differentBody) 
         {
             // If the current node is a leaf node (and it is not source body),
             // calculate the force exerted by the current node on body, and add this
             // amount to body's net force.
-            dx = body->get_position().x - sourceBody.get_position().x;
-            dy = body->get_position().y - sourceBody.get_position().y;
-            dz = body->get_position().z - sourceBody.get_position().z;
+            {
+                const auto& body_pos = body->get_position();
+                dx = body_pos.x - src_pos.x;
+                dy = body_pos.y - src_pos.y;
+                dz = body_pos.z - src_pos.z;
+            }
+
             r = sqrt(dx * dx + dy * dy + dz * dz);
 
             if (r == 0) {
@@ -205,6 +220,7 @@ void COctree::updateBodyForce(CBody& sourceBody) {
             // This is standard gravitation force calculation but we divide
             // by r^3 to save two operations when normalizing force vector.
 
+            
             v = LayoutSettings::gravity * body->get_mass() * sourceBody.get_mass() / (r * r * r);
             fx += v * dx;
             fy += v * dy;
@@ -216,9 +232,9 @@ void COctree::updateBodyForce(CBody& sourceBody) {
             // represented by the internal node, and r is the distance between the body
             // and the node's center-of-mass
 
-            dx = node->massVector.x / node->mass - sourceBody.get_position().x;
-            dy = node->massVector.y / node->mass - sourceBody.get_position().y;
-            dz = node->massVector.z / node->mass - sourceBody.get_position().z;
+            dx = node.massVector.x / node.mass - src_pos.x;
+            dy = node.massVector.y / node.mass - src_pos.y;
+            dz = node.massVector.z / node.mass - src_pos.z;
 
             r = sqrt(dx * dx + dy * dy + dz * dz);
 
@@ -232,11 +248,11 @@ void COctree::updateBodyForce(CBody& sourceBody) {
             }
             // If s / r < θ, treat this internal node as a single body, and calculate the
             // force it exerts on sourceBody, and add this amount to sourceBody's net force.
-            if ((node->right - node->left) / r < LayoutSettings::theta) {
+            if ((node.right - node.left) / r < LayoutSettings::theta) {
                 // in the if statement above we consider node's width only
                 // because the region was squarified during tree creation.
                 // Thus there is no difference between using width or height.
-                v = LayoutSettings::gravity * node->mass * sourceBody.get_mass() / (r * r * r);
+                v = LayoutSettings::gravity * node.mass * sourceBody.get_mass() / (r * r * r);
                 fx += v * dx;
                 fy += v * dy;
                 fz += v * dz;
@@ -244,15 +260,15 @@ void COctree::updateBodyForce(CBody& sourceBody) {
             else {
                 // Otherwise, run the procedure recursively on each of the current node's children.
                 for (int i = 0; i < 8; ++i) {
-                    if (node->quads[i]) {
+                    if (node.quads[i]) {
                         if (queue.size() < pushIndex) {
-                            queue[pushIndex] = node->quads[i];
+                            queue[pushIndex] = node.quads[i];
                         }
                         else {
-                            queue.push_back(node->quads[i]);
+                            queue.emplace_back(node.quads[i]);
                         }
-                        queueLength += 1;
-                        pushIndex += 1;
+                        queueLength++;
+                        pushIndex++;
                     }
                 }
             }

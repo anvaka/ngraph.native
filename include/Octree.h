@@ -2,6 +2,8 @@
 
 #include <vector>
 #include <deque>
+#include <boost/pool/pool_alloc.hpp>
+
 #include "body.h"
 #include "Random.h"
 #include "primitives.h"
@@ -9,7 +11,10 @@
 
 struct COctreeNode 
 {
-    COctreeNode *quads[8];
+    using Ptr_t = COctreeNode*;
+    using AllocPool_t = boost::fast_pool_allocator<COctreeNode>;
+public:
+    Ptr_t quads[8];
     CBody *body;
     double mass;
     Vector3 massVector;
@@ -28,6 +33,18 @@ struct COctreeNode
         mass = 0;
         left = right = top = bottom = front = back = 0;
     }
+
+    static void* operator new(size_t)
+    {
+        return m_AllocPool.allocate();
+    }
+
+    static void operator delete(void* obj)
+    {
+        m_AllocPool.deallocate((Ptr_t)obj);
+    }
+private:
+    static AllocPool_t m_AllocPool;
 };
 
 class COctreeNodePool 
@@ -38,31 +55,35 @@ public:
         reset(0);
     }
 
-    void reset(int count)
+    void reset(size_t count)
     {
-        pool.resize(count);
-        current_available = pool.begin();
+        pool.reserve(count);
+        for (size_t i = pool.size(); i < count; ++i)
+        {
+            pool.emplace_back(new COctreeNode());
+        }
+
+        currentAvailable = 0;
     }
 
     COctreeNode* get()
     {
         COctreeNode *result;
-        if (current_available == pool.end())
-        {
-            current_available = pool.insert(pool.end(), COctreeNode());
+        if (currentAvailable < pool.size()) {
+            result = pool[currentAvailable];
+            result->reset();
         }
-        
-        result = &(*current_available);
-        result->reset();
-
-        ++current_available;
-
+        else {
+            result = new COctreeNode();
+            pool.emplace_back(result);
+        }
+        currentAvailable += 1;
         return result;
     }
 
 private:
-    std::vector<COctreeNode>::iterator current_available;
-    std::vector<COctreeNode> pool;
+    size_t currentAvailable = 0;
+    std::vector<COctreeNode*> pool;
 };
 
 class COctree 
@@ -78,7 +99,7 @@ public:
 
 private:
     COctreeNode *createRootNode(std::vector<CBody> &bodies);
-    void insert(CBody *body, COctreeNode *node);
+    bool insert(CBody *body, COctreeNode *node);
 
 private:
     CRandom random;
