@@ -152,7 +152,7 @@ bool COctree::insert(CBody *body, COctreeNode *node) {
 }
 
 void COctree::insertBodies(std::vector<CBody> &bodies) {
-    treeNodes.reset(bodies.size() * 8);
+    treeNodes.reset(bodies.size() * 2);
 
     root = createRootNode(bodies);
 
