@@ -154,21 +154,20 @@ void CLayout::load_links(const fs::path & pathLinksFile)
         m_vecBodies.resize(std::abs(*element));
     }
 
-    for (int i = 0, end = links.size(), from = 0; i < end; ++i)
-    {
+    CBody *fromBody = nullptr;
+    for (int i = 0, from = 0; i <  links.size(); i++) {
         int index = links[i];
-        if (index < 0)
-        {
+        if (index < 0) {
             index = -index;
             from = index - 1;
+            fromBody = &(m_vecBodies[from]);
         }
-        else
-        {
-            const int to = index - 1;
-            m_vecBodies[from].push_springs(to);
+        else {
+            int to = index - 1;
+            fromBody->push_springs(to);
+            m_vecBodies[to].inc_in_edges();
         }
     }
-
 }
 
 void CLayout::load_positions(const fs::path & pathPositionsFile)
@@ -295,8 +294,7 @@ double CLayout::integrate()
 {
     double dx = 0, tx = 0,
     dy = 0, ty = 0,
-    dz = 0, tz = 0,
-    timeStep = LayoutSettings::timeStep;
+    dz = 0, tz = 0;
 
     //dx should be private or defined inside loop
     //tx need to be reduction variable, or its value will be unpredictable.
@@ -310,7 +308,7 @@ double CLayout::integrate()
         CBody& body = m_vecBodies[i];
         const auto& force = body.get_force();
 
-        const double coeff = timeStep / body.get_mass();
+        const double coeff = LayoutSettings::timeStep / body.get_mass();
 
         {
             const auto& velocity = body.get_velocity();
@@ -345,9 +343,9 @@ double CLayout::integrate()
 
         {
             const auto& velocity = body.get_velocity();
-            dx = timeStep * velocity.x;
-            dy = timeStep * velocity.y;
-            dz = timeStep * velocity.z;
+            dx = LayoutSettings::timeStep * velocity.x;
+            dy = LayoutSettings::timeStep * velocity.y;
+            dz = LayoutSettings::timeStep * velocity.z;
         }
 
         {

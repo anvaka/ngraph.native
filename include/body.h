@@ -11,6 +11,8 @@ public:
 
     inline void push_springs(int indxVertex);
 
+    inline void inc_in_edges();
+
     inline void set_force(const Vector3& force);
 
     inline void set_velocity(const Vector3& velocity);

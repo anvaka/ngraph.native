@@ -1,3 +1,4 @@
+#include "..\include\body.h"
 
 inline void CBody::set_position(const Vector3 & pos)
 {
@@ -16,8 +17,12 @@ inline double CBody::get_mass() const
 
 inline void CBody::push_springs(int indxVertex)
 {
-    ++m_nIncomingLinks;
     m_nSprings.emplace_back(indxVertex);
+}
+
+inline void CBody::inc_in_edges()
+{
+    ++m_nIncomingLinks;
 }
 
 inline void CBody::set_force(const Vector3 & force)
