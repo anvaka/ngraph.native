@@ -218,12 +218,7 @@ void CLayout::init_positions()
 {
     const size_t maxBodyId = m_vecBodies.size();
 
-    #pragma omp parallel for
-    #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
-    #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
-    #endif
     {
         auto& body = m_vecBodies[i];
         if (!body.get_position().is_initialized())
@@ -238,12 +233,7 @@ void CLayout::init_positions()
         const Vector3& sourcePos = body.get_position();
         auto& springs = body.get_springs();
         // init neighbours position:
-        #pragma omp parallel for
-        #if _OPENMP >= 200805
         for (size_t j = 0; j < springs.size(); ++j)
-        #else
-        for (int j = 0; j < springs.size(); ++j)
-        #endif
         {
             if (!m_vecBodies[springs[j]].get_position().is_initialized())
             {
