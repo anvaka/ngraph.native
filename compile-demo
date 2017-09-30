@@ -1,6 +1,0 @@
-#!/bin/sh
-# If you are compiling this on OSX make sure to install omp:
-# brew install clang-omp
-# and use this line:
-# clang-omp++ -O3 -fopenmp -Wall -std=c++11 -I./src ./demo/ngraph.native.demo/ngraph.native.demo/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
-g++ -O3 -fopenmp -Wall -std=c++11 -I./src ./demo/gcc/main.cpp ./src/layout.cpp ./src/quadTree.cpp -o layout++
