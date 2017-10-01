@@ -108,7 +108,7 @@ int CApplication::run(const int argc, const char * argv[])
             std::wcout
                 << L"min(" << time_min.count() << L"ms), "
                 << L"max(" << time_max.count() << L"ms), "
-                << L"avg(" << time_avg.count() / i + 1 << L"ms)\n";
+                << L"avg(" << time_avg.count() / (i + 1) << L"ms)\n";
         }
 
         layout.serialize_to_file();
