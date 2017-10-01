@@ -10,6 +10,8 @@
 
 int CApplication::run(const int argc, const char * argv[])
 {
+    using namespace std::chrono;
+
     int nExitCode = EXIT_FAILURE;
 
     do
@@ -27,11 +29,12 @@ int CApplication::run(const int argc, const char * argv[])
                 g_Settings.get_positions_file());
         }
 
-        std::chrono::time_point<std::chrono::steady_clock> start, start_iteration, end;
+        time_point<steady_clock> start, start_iteration, end;
+        milliseconds time_min = 0ms, time_max = 0ms, time_avg = 0ms;
 
-        start = std::chrono::high_resolution_clock::now();
+        start = high_resolution_clock::now();
         CLayout layout;
-        end = std::chrono::high_resolution_clock::now();
+        end = high_resolution_clock::now();
 
         if (g_Settings.is_verbose())
         {
@@ -45,7 +48,7 @@ int CApplication::run(const int argc, const char * argv[])
                 << L"=========" << std::endl;
             std::wcout
                 << L"Time spent on load layout = "
-                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                << std::chrono::duration_cast<milliseconds>(end - start).count()
                 << L"ms\n";
             std::wcout
                 << L"=========" << std::endl;
@@ -53,22 +56,30 @@ int CApplication::run(const int argc, const char * argv[])
 
         size_t i = nStartIteration;
         size_t nIntervalSave = g_Settings.get_interval_save();
-        start_iteration = std::chrono::high_resolution_clock::now();
+        start_iteration = high_resolution_clock::now();
         for (size_t max = g_Settings.get_max_iteration(); i < max; ++i)
         {
-            start = std::chrono::high_resolution_clock::now();
+            start = high_resolution_clock::now();
 
             bool bCompleted = layout.step();
 
-            end = std::chrono::high_resolution_clock::now();
+            end = high_resolution_clock::now();
 
             if (g_Settings.is_verbose())
             {
+                const auto diff = duration_cast<milliseconds>(end - start);
+                if (time_min == 0ms || diff < time_min)
+                    time_min = diff;
+                else if (diff > time_max)
+                    time_max = diff;
+
+                time_avg += diff;
+
                 std::wcout
                     << L"=========" << std::endl;
                 std::wcout
                     << L"Time spent on step(" << i << L") = "
-                    << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                    << diff.count()
                     << L"ms\n";
             }
 
@@ -85,13 +96,19 @@ int CApplication::run(const int argc, const char * argv[])
 
         if (g_Settings.is_verbose())
         {
-            end = std::chrono::high_resolution_clock::now();
+            end = high_resolution_clock::now();
             std::wcout
                 << L"=========" << std::endl;
             std::wcout
                 << L"Total time spent on iterations(" << i << L") = "
-                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start_iteration).count()
+                << duration_cast<milliseconds>(end - start_iteration).count()
                 << L"ms\n";
+            std::wcout
+                << L"=========" << std::endl;
+            std::wcout
+                << L"min(" << time_min.count() << L"ms), "
+                << L"max(" << time_max.count() << L"ms), "
+                << L"avg(" << time_avg.count() / i << L"ms)\n";
         }
 
         layout.serialize_to_file();

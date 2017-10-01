@@ -148,14 +148,16 @@ void CLayout::load_links(const fs::path & pathLinksFile)
         const auto element = std::max_element(
             links.begin(), links.end(),
             [](int a, int b) {
-            return std::abs(a) < std::abs(b);
-        });
+                return std::abs(a) < std::abs(b);
+            });
 
         m_vecBodies.resize(std::abs(*element));
     }
 
-    for (int i = 0, from = 0; i <  links.size(); i++) {
-        int index = links[i];
+    int from = 0;
+    for (int link : links)
+    {
+        int index = link;
         if (index < 0) {
             index = -index;
             from = index - 1;
@@ -178,11 +180,12 @@ void CLayout::load_positions(const fs::path & pathPositionsFile)
     for (int i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
-        m_vecBodies[i].set_position(Vector3(
-            positions[i * 3 + 0],
-            positions[i * 3 + 1],
-            positions[i * 3 + 2]
-        ));
+        m_vecBodies[i].set_position(
+            Vector3{
+                static_cast<double>(positions[i * 3 + 0]),
+                static_cast<double>(positions[i * 3 + 1]),
+                static_cast<double>(positions[i * 3 + 2])
+            });
     }
 }
 
@@ -309,11 +312,11 @@ double CLayout::integrate()
         const auto& force = body.get_force();
 
         body.set_velocity(
-            Vector3(
+            Vector3 {
                 velocity.x + coeff * force.x,
                 velocity.y + coeff * force.y,
                 velocity.z + coeff * force.z
-            )
+            }
         );
 
         double vx = velocity.x,
@@ -323,11 +326,7 @@ double CLayout::integrate()
 
         if (v > 1) {
             body.set_velocity(
-                Vector3(
-                    vx / v,
-                    vy / v,
-                    vz / v
-                )
+                Vector3{ vx / v, vy / v, vz / v }
             );
         }
 
@@ -336,11 +335,11 @@ double CLayout::integrate()
         dz = LayoutSettings::timeStep * velocity.z;
 
         body.set_position(
-            Vector3(
+            Vector3 {
                 pos.x + dx,
                 pos.y + dy,
                 pos.z + dz
-            )
+            }
         );
 
         tx += abs(dx); ty += abs(dy); tz += abs(dz);
@@ -389,22 +388,22 @@ void CLayout::updateSpringForce(CBody& source)
         {
             const auto& force = source.get_force();
             source.set_force(
-                Vector3(
+                Vector3 {
                     force.x + coeff * dx,
                     force.y + coeff * dy,
                     force.z + coeff * dz
-                )
+                }
             );
         }
 
         {
             const auto& force = body2.get_force();
             body2.set_force(
-                Vector3(
+                Vector3 {
                     force.x - coeff * dx,
                     force.y - coeff * dy,
                     force.z - coeff * dz
-                )
+                }
             );
         }
     }
@@ -415,10 +414,10 @@ void CLayout::updateDragForce(CBody& body)
     const auto& force = body.get_force();
     const auto& velocity = body.get_velocity();
     body.set_force(
-        Vector3(
+        Vector3 {
             force.x - LayoutSettings::dragCoeff * velocity.x,
             force.y - LayoutSettings::dragCoeff * velocity.y,
             force.z - LayoutSettings::dragCoeff * velocity.z
-        )
+        }
     );
 }

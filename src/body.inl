@@ -5,6 +5,11 @@ inline void CBody::set_position(const Vector3 & pos)
     m_Position = pos;
 }
 
+inline void CBody::set_position(Vector3 && pos)
+{
+    m_Position = pos;
+}
+
 inline void CBody::set_mass(double mass)
 {
     m_dMass = mass;
@@ -30,7 +35,17 @@ inline void CBody::set_force(const Vector3 & force)
     m_Force = force;
 }
 
+inline void CBody::set_force(Vector3 && force)
+{
+    m_Force = force;
+}
+
 inline void CBody::set_velocity(const Vector3 & velocity)
+{
+    m_Velocity = velocity;
+}
+
+inline void CBody::set_velocity(Vector3 && velocity)
 {
     m_Velocity = velocity;
 }

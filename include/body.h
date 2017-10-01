@@ -7,6 +7,8 @@ class CBody
 public:
     inline void set_position(const Vector3& pos);
 
+    inline void set_position(Vector3&& pos);
+
     inline void set_mass(double mass);
 
     inline void push_springs(int indxVertex);
@@ -15,7 +17,11 @@ public:
 
     inline void set_force(const Vector3& force);
 
+    inline void set_force(Vector3&& force);
+
     inline void set_velocity(const Vector3& velocity);
+
+    inline void set_velocity(Vector3&& velocity);
 
     inline double get_mass() const;
 

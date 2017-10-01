@@ -120,11 +120,11 @@ bool COctree::insert(CBody *body, COctreeNode *node) {
                 dz = (node->front - node->back) * offset;
 
             oldBody->set_position(
-                Vector3(
+                Vector3{
                     node->left + dx,
                     node->top + dy,
                     node->back + dz
-                ));
+                });
             // Make sure we don't bump it out of the box. If we do, next iteration should fix it
         } while (--retriesCount > 0 && old_pos.sameAs(pos));
 
@@ -181,11 +181,11 @@ void COctree::updateBodyForce(CBody& sourceBody)
         }
         else
         {
-            start_pos = Vector3(
+            start_pos = Vector3{
                 node->massVector.x / node->mass,
                 node->massVector.y / node->mass,
                 node->massVector.z / node->mass
-            );
+            };
         }
             
         double dx = start_pos.x - src_pos.x;
@@ -237,11 +237,10 @@ void COctree::updateBodyForce(CBody& sourceBody)
 
     const auto& force = sourceBody.get_force();
     sourceBody.set_force(
-        Vector3(
+        Vector3 {
             force.x + fx,
             force.y + fy,
             force.z + fz
-        )
-    );
+        });
 }
 
