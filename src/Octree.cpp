@@ -2,6 +2,8 @@
 
 #include "Octree.h"
 
+COctreeNode::AllocPool_t COctreeNode::m_AllocPool{ 4096, 0 };
+
 COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
     double x1 = INT32_MAX, x2 = INT32_MIN,
         y1 = INT32_MAX, y2 = INT32_MIN,

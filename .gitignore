@@ -260,3 +260,8 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/CMakeFiles
+/Win32/RelWithDebInfo/ZERO_CHECK/ZERO_CHECK.tlog
+/test
+/RelWithDebInfo
+/links++.dir/RelWithDebInfo/links++.tlog

@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <deque>
-#include <boost/pool/pool_alloc.hpp>
+#include <boost/pool/object_pool.hpp>
 
 #include "body.h"
 #include "Random.h"
@@ -12,7 +12,7 @@
 struct COctreeNode 
 {
     using Ptr_t = COctreeNode*;
-    using AllocPool_t = boost::fast_pool_allocator<COctreeNode>;
+    using AllocPool_t = boost::object_pool<COctreeNode>;
 public:
     Ptr_t childs[8];
     CBody *body;
@@ -36,12 +36,12 @@ public:
 
     static void* operator new(size_t)
     {
-        return m_AllocPool.allocate();
+        return m_AllocPool.malloc();
     }
 
     static void operator delete(void* obj)
     {
-        m_AllocPool.deallocate((Ptr_t)obj);
+        m_AllocPool.free((Ptr_t)obj);
     }
 private:
     static AllocPool_t m_AllocPool;
