@@ -222,26 +222,25 @@ void CLayout::init_positions()
         auto& body = m_vecBodies[i];
         if (!body.get_position().is_initialized())
         {
-            Vector3 pos(
-                m_Random.nextDouble() * log(maxBodyId) * 100,
-                m_Random.nextDouble() * log(maxBodyId) * 100,
-                m_Random.nextDouble() * log(maxBodyId) * 100
-            );
-            body.set_position(pos);
+            body.set_position(
+                Vector3{
+                    m_Random.nextDouble() * log(maxBodyId) * 100,
+                    m_Random.nextDouble() * log(maxBodyId) * 100,
+                    m_Random.nextDouble() * log(maxBodyId) * 100
+                });
         }
         const Vector3& sourcePos = body.get_position();
-        auto& springs = body.get_springs();
         // init neighbours position:
-        for (size_t j = 0; j < springs.size(); ++j)
+        for (int spring : body.get_springs())
         {
-            if (!m_vecBodies[springs[j]].get_position().is_initialized())
+            if (!m_vecBodies[spring].get_position().is_initialized())
             {
-                Vector3 pos(
-                    sourcePos.x + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
-                    sourcePos.y + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
-                    sourcePos.z + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2
-                );
-                m_vecBodies[springs[j]].set_position(pos);
+                m_vecBodies[spring].set_position(
+                    Vector3{
+                        sourcePos.x + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
+                        sourcePos.y + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
+                        sourcePos.z + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2
+                    });
             }
         }
     }
@@ -418,6 +417,5 @@ void CLayout::updateDragForce(CBody& body)
             force.x - LayoutSettings::dragCoeff * velocity.x,
             force.y - LayoutSettings::dragCoeff * velocity.y,
             force.z - LayoutSettings::dragCoeff * velocity.z
-        }
-    );
+        });
 }
