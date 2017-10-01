@@ -33,6 +33,8 @@ public:
 
     inline void reset_velocity();
 
+    inline bool operator==(const CBody& rhs);
+
 private:
     double m_dMass = 1.0;
 

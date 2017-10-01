@@ -69,3 +69,8 @@ inline void CBody::reset_velocity()
 {
     m_Velocity.reset();
 }
+
+inline bool CBody::operator==(const CBody & rhs)
+{
+    return this == &rhs;
+}

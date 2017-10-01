@@ -14,7 +14,7 @@ struct COctreeNode
     using Ptr_t = COctreeNode*;
     using AllocPool_t = boost::fast_pool_allocator<COctreeNode>;
 public:
-    Ptr_t quads[8];
+    Ptr_t childs[8];
     CBody *body;
     double mass;
     Vector3 massVector;
@@ -27,7 +27,7 @@ public:
 
     void reset() 
     {
-        quads[0] = quads[1] = quads[2] = quads[3] = quads[4] = quads[5] = quads[6] = quads[7] = NULL;
+        childs[0] = childs[1] = childs[2] = childs[3] = childs[4] = childs[5] = childs[6] = childs[7] = NULL;
         body = NULL;
         massVector.reset();
         mass = 0;
@@ -99,7 +99,7 @@ public:
 
 private:
     COctreeNode *createRootNode(std::vector<CBody> &bodies);
-    bool insert(CBody *body, COctreeNode *node);
+    bool insert(CBody* body, COctreeNode* node);
 
 private:
     CRandom random;

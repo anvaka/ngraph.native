@@ -154,17 +154,15 @@ void CLayout::load_links(const fs::path & pathLinksFile)
         m_vecBodies.resize(std::abs(*element));
     }
 
-    CBody *fromBody = nullptr;
     for (int i = 0, from = 0; i <  links.size(); i++) {
         int index = links[i];
         if (index < 0) {
             index = -index;
             from = index - 1;
-            fromBody = &(m_vecBodies[from]);
         }
         else {
-            int to = index - 1;
-            fromBody->push_springs(to);
+            const int to = index - 1;
+            m_vecBodies[from].push_springs(to);
             m_vecBodies[to].inc_in_edges();
         }
     }
@@ -180,12 +178,11 @@ void CLayout::load_positions(const fs::path & pathPositionsFile)
     for (int i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
-        Vector3 pos(
+        m_vecBodies[i].set_position(Vector3(
             positions[i * 3 + 0],
             positions[i * 3 + 1],
             positions[i * 3 + 2]
-        );
-        m_vecBodies[i].set_position(pos);
+        ));
     }
 }
 
@@ -306,58 +303,46 @@ double CLayout::integrate()
     #endif
     {
         CBody& body = m_vecBodies[i];
+        const double coeff = LayoutSettings::timeStep / body.get_mass();
+        const auto& pos = body.get_position();
+        const auto& velocity = body.get_velocity();
         const auto& force = body.get_force();
 
-        const double coeff = LayoutSettings::timeStep / body.get_mass();
+        body.set_velocity(
+            Vector3(
+                velocity.x + coeff * force.x,
+                velocity.y + coeff * force.y,
+                velocity.z + coeff * force.z
+            )
+        );
 
-        {
-            const auto& velocity = body.get_velocity();
+        double vx = velocity.x,
+            vy = velocity.y,
+            vz = velocity.z,
+            v = sqrt(vx * vx + vy * vy + vz * vz);
+
+        if (v > 1) {
             body.set_velocity(
                 Vector3(
-                    velocity.x + coeff * force.x,
-                    velocity.y + coeff * force.y,
-                    velocity.z + coeff * force.z
+                    vx / v,
+                    vy / v,
+                    vz / v
                 )
             );
         }
 
-        {
-            const auto& velocity = body.get_velocity();
-            const double
-                vx = velocity.x,
-                vy = velocity.y,
-                vz = velocity.z,
-                v = sqrt(vx * vx + vy * vy + vz * vz);
+        dx = LayoutSettings::timeStep * velocity.x;
+        dy = LayoutSettings::timeStep * velocity.y;
+        dz = LayoutSettings::timeStep * velocity.z;
 
-            if (v > 1)
-            {
-                body.set_velocity(
-                    Vector3(
-                        vx / v,
-                        vy / v,
-                        vz / v
-                    )
-                );
-            }
-        }
+        body.set_position(
+            Vector3(
+                pos.x + dx,
+                pos.y + dy,
+                pos.z + dz
+            )
+        );
 
-        {
-            const auto& velocity = body.get_velocity();
-            dx = LayoutSettings::timeStep * velocity.x;
-            dy = LayoutSettings::timeStep * velocity.y;
-            dz = LayoutSettings::timeStep * velocity.z;
-        }
-
-        {
-            const auto& pos = body.get_position();
-            body.set_position(
-                Vector3(
-                    pos.x + dx,
-                    pos.y + dy,
-                    pos.z + dz
-                )
-            );
-        }
         tx += abs(dx); ty += abs(dy); tz += abs(dz);
     }
 
@@ -380,20 +365,17 @@ bool CLayout::step()
 
 void CLayout::updateSpringForce(CBody& source) 
 {
-    const auto& springs = source.get_springs();
     const auto& src_pos = source.get_position();
-    for (size_t i = 0, end = springs.size(); i < end; ++i)
+    for(int spring : source.get_springs())
     {
-        CBody& body2 = m_vecBodies[springs[i]];
-        const auto& pos2 = source.get_position();
-
-        double dx = pos2.x - src_pos.x;
-        double dy = pos2.y - src_pos.y;
-        double dz = pos2.z - src_pos.z;
-
+        CBody& body2 = m_vecBodies[spring];
+        const auto& dst_pos = body2.get_position();
+        double dx = dst_pos.x - src_pos.x;
+        double dy = dst_pos.y - src_pos.y;
+        double dz = dst_pos.z - src_pos.z;
         double r = sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (r == 0)
+        if (r == 0) 
         {
             dx = (m_Random.nextDouble() - 0.5) / 50;
             dy = (m_Random.nextDouble() - 0.5) / 50;
@@ -414,14 +396,14 @@ void CLayout::updateSpringForce(CBody& source)
                 )
             );
         }
-        
+
         {
             const auto& force = body2.get_force();
             body2.set_force(
                 Vector3(
-                    force.x + coeff * dx,
-                    force.y + coeff * dy,
-                    force.z + coeff * dz
+                    force.x - coeff * dx,
+                    force.y - coeff * dy,
+                    force.z - coeff * dz
                 )
             );
         }
