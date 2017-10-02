@@ -165,7 +165,7 @@ void COctree::updateBodyForce(CBody& sourceBody)
 
     double fx = 0, fy = 0, fz = 0;
 
-    std::stack<COctreeNode *> queue;
+    std::stack<COctreeNode *, std::vector<COctreeNode *>> queue;
     queue.emplace(root);
     while (!queue.empty())
     {
