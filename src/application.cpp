@@ -1,17 +1,15 @@
-#include "stdafx.h"
+#include <stdafx.h>
 
 #include <regex>
 
-#include "layout.h"
+#include <layout.h>
 
-#include "application.h"
-#include "application_settings.h"
+#include <application.h>
+#include <application_settings.h>
 
 
 int CApplication::run(const int argc, const char * argv[])
 {
-    using namespace std::chrono;
-
     int nExitCode = EXIT_FAILURE;
 
     do
@@ -29,58 +27,58 @@ int CApplication::run(const int argc, const char * argv[])
                 g_Settings.get_positions_file());
         }
 
-        time_point<steady_clock> start, start_iteration, end;
-        milliseconds time_min = 0ms, time_max = 0ms, time_avg = 0ms;
+        std::chrono::time_point<std::chrono::system_clock> start, start_iteration, end;
+        std::chrono::milliseconds time_min(0), time_max(0), time_avg(0);
 
-        start = high_resolution_clock::now();
+        start = std::chrono::system_clock::now();
         CLayout layout;
-        end = high_resolution_clock::now();
+        end = std::chrono::system_clock::now();
 
         if (g_Settings.is_verbose())
         {
-            std::wcout
-                << L"=========" << std::endl;
-            std::wcout
-                << L"Start iteration = " << nStartIteration << std::endl
-                << L"Maximum iterations = " << g_Settings.get_max_iteration() << std::endl
-                << L"Count vertex in graph = " << layout.get_bodies().size() << std::endl;
-            std::wcout
-                << L"=========" << std::endl;
-            std::wcout
-                << L"Time spent on load layout = "
-                << std::chrono::duration_cast<milliseconds>(end - start).count()
-                << L"ms\n";
-            std::wcout
-                << L"=========" << std::endl;
+            std::cout
+                << "=========" << std::endl;
+            std::cout
+                << "Start iteration = " << nStartIteration << std::endl
+                << "Maximum iterations = " << g_Settings.get_max_iteration() << std::endl
+                << "Count vertex in graph = " << layout.get_bodies().size() << std::endl;
+            std::cout
+                << "=========" << std::endl;
+            std::cout
+                << "Time spent on load layout = "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                << "ms\n";
+            std::cout
+                << "=========" << std::endl;
         }
 
         size_t i = nStartIteration;
         size_t nIntervalSave = g_Settings.get_interval_save();
-        start_iteration = high_resolution_clock::now();
+        start_iteration = std::chrono::system_clock::now();
         for (size_t max = g_Settings.get_max_iteration(); i < max; ++i)
         {
-            start = high_resolution_clock::now();
+            start = std::chrono::system_clock::now();
 
             bool bCompleted = layout.step();
 
-            end = high_resolution_clock::now();
+            end = std::chrono::system_clock::now();
 
             if (g_Settings.is_verbose())
             {
-                const auto diff = duration_cast<milliseconds>(end - start);
-                if (time_min == 0ms || diff < time_min)
+                const auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+                if (time_min == std::chrono::milliseconds(0) || diff < time_min)
                     time_min = diff;
                 else if (diff > time_max)
                     time_max = diff;
 
                 time_avg += diff;
 
-                std::wcout
-                    << L"=========" << std::endl;
-                std::wcout
-                    << L"Time spent on step(" << i << L") = "
+                std::cout
+                    << "=========" << std::endl;
+                std::cout
+                    << "Time spent on step(" << i << ") = "
                     << diff.count()
-                    << L"ms\n";
+                    << "ms\n";
             }
 
             if (bCompleted)
@@ -96,19 +94,19 @@ int CApplication::run(const int argc, const char * argv[])
 
         if (g_Settings.is_verbose())
         {
-            end = high_resolution_clock::now();
-            std::wcout
-                << L"=========" << std::endl;
-            std::wcout
-                << L"Total time spent on iterations(" << i << L") = "
-                << duration_cast<milliseconds>(end - start_iteration).count()
-                << L"ms\n";
-            std::wcout
-                << L"=========" << std::endl;
-            std::wcout
-                << L"min(" << time_min.count() << L"ms), "
-                << L"max(" << time_max.count() << L"ms), "
-                << L"avg(" << time_avg.count() / (i + 1) << L"ms)\n";
+            end = std::chrono::system_clock::now();
+            std::cout
+                << "=========" << std::endl;
+            std::cout
+                << "Total time spent on iterations(" << i << ") = "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start_iteration).count()
+                << "ms\n";
+            std::cout
+                << "=========" << std::endl;
+            std::cout
+                << "min(" << time_min.count() << "ms), "
+                << "max(" << time_max.count() << "ms), "
+                << "avg(" << time_avg.count() / (i + 1) << "ms)\n";
         }
 
         layout.serialize_to_file();
@@ -147,8 +145,6 @@ size_t CApplication::get_iteration_start_from_name(
 
 bool CApplication::parse_options(const int argc, const char * argv[])
 {
-    static const wchar_t* wszErrorMessage = L"Invalid argument. ";
-
     std::vector<std::string> args(&argv[1], &argv[argc]);
     for (int i = 0; i < args.size(); ++i)
     {
@@ -163,45 +159,45 @@ bool CApplication::parse_options(const int argc, const char * argv[])
         {
             g_Settings.set_verbose(true);
         }
-        else if (arg == "-l" || arg == "--links")
+        else if (arg == "-" || arg == "--links")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'links' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'links' option");
 
             g_Settings.set_links_file(args[++i]);
         }
         else if (arg == "-p" || arg == "--positions")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'positions' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'positions' option");
 
             g_Settings.set_positions_file(args[++i]);
         }
         else if (arg == "-w" || arg == "--weights")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'weights' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'weights' option");
 
             g_Settings.set_weights_file(args[++i]);
         }
         else if (arg == "-s" || arg == "--save")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'save' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'save' option");
 
             g_Settings.set_save_positions_file(args[++i]);
         }
-        else if (arg == "-i" || arg == "--save_interval")
+        else if (arg == "-i" || arg == "--save_interva")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'save_interval' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'save_interval' option");
 
             g_Settings.set_interval_save(std::stoi(args[++i]));
         }
         else if (arg == "-m" || arg == "--max_iterations")
         {
             if (i + 1 >= args.size())
-                THROW_EXCEPTION(wszErrorMessage << L"Need arg for 'max_iterations' option");
+                THROW_EXCEPTION("Invalid argument. " << "Need arg for 'max_iterations' option");
 
             g_Settings.set_max_iteration(std::stoi(args[++i]));
         }
@@ -212,15 +208,15 @@ bool CApplication::parse_options(const int argc, const char * argv[])
 
 void CApplication::print_help()
 {
-    std::wcout <<
-        L"Allowed options:\n"
-        L"  -h, --help              Show this message\n"
-        L"  -v, --verbose           Verbose mode\n"
-        L"  -s, --save              Path to file for save result positions\n"
-        L"  -l, --links             Path to file with serialized graph\n"
-        L"                          See https://github.com/anvaka/ngraph.tobinary for format description\n"
-        L"  -p, --positions         Path to file with positions for vertices. Next step started with this snapshot\n"
-        L"  -w, --weights           Path to file with weights for vertices\n"
-        L"  -i, --save_interval     Save snapshot position each interval iterations\n"
-        L"  -m, --max_iterations    Maximum iterations for algorithm\n";
+    std::cout <<
+        "Allowed options:\n"
+        "  -h, --help              Show this message\n"
+        "  -v, --verbose           Verbose mode\n"
+        "  -s, --save              Path to file for save result positions\n"
+        "  -l, --links             Path to file with serialized graph\n"
+        "                          See https://github.com/anvaka/ngraph.tobinary for format description\n"
+        "  -p, --positions         Path to file with positions for vertices. Next step started with this snapshot\n"
+        "  -w, --weights           Path to file with weights for vertices\n"
+        "  -i, --save_interval     Save snapshot position each interval iterations\n"
+        "  -m, --max_iterations    Maximum iterations for algorithm\n";
 }

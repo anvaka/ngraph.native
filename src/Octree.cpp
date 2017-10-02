@@ -1,6 +1,6 @@
-﻿#include "stdafx.h"
+﻿#include <stdafx.h>
 
-#include "Octree.h"
+#include <Octree.h>
 
 COctreeNode::AllocPool_t COctreeNode::m_AllocPool{ 4096, 0 };
 

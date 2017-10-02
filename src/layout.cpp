@@ -1,8 +1,8 @@
-#include "stdafx.h"
+#include <stdafx.h>
 
-#include "layout.h"
-#include "layout_settings.h"
-#include "application_settings.h"
+#include <layout.h>
+#include <layout_settings.h>
+#include <application_settings.h>
 
 using FileContent = std::vector<int>;
 FileContent ReadFile(const fs::path& path)
@@ -11,7 +11,7 @@ FileContent ReadFile(const fs::path& path)
     std::ifstream file(path.string(), std::ios::binary | std::ios::ate);
     if (!file.is_open())
     {
-        THROW_EXCEPTION(L"Cant open file = " << path);
+        THROW_EXCEPTION("Cant open file = " << path);
     }
 
     std::streampos size = file.tellg();
@@ -86,14 +86,14 @@ void CLayout::load_positions()
 {
     if (g_Settings.is_verbose())
     {
-        std::wcout << L"Load positions" << std::endl;
+        std::cout << "Load positions" << std::endl;
     }
 
     if (g_Settings.is_required_positions_file())
     {
         if (g_Settings.is_verbose())
         {
-            std::wcout << L"Load positions from file" << std::endl;
+            std::cout << "Load positions from file" << std::endl;
         }
 
         load_positions(g_Settings.get_positions_file());
@@ -102,7 +102,7 @@ void CLayout::load_positions()
     {
         if (g_Settings.is_verbose())
         {
-            std::wcout << L"Positions initialized default values" << std::endl;
+            std::cout << "Positions initialized default values" << std::endl;
         }
 
         init_positions();
@@ -113,14 +113,14 @@ void CLayout::load_weights()
 {
     if (g_Settings.is_verbose())
     {
-        std::wcout << L"Load weights" << std::endl;
+        std::cout << "Load weights" << std::endl;
     }
 
     if (g_Settings.is_required_weights_file())
     {
         if (g_Settings.is_verbose())
         {
-            std::wcout << L"Load weights from file" << std::endl;
+            std::cout << "Load weights from file" << std::endl;
         }
 
         load_weights(g_Settings.get_weights_file());
@@ -129,7 +129,7 @@ void CLayout::load_weights()
     {
         if (g_Settings.is_verbose())
         {
-            std::wcout << L"Weights initialized default values" << std::endl;
+            std::cout << "Weights initialized default values" << std::endl;
         }
 
         init_weights();
@@ -141,7 +141,7 @@ void CLayout::load_links(const fs::path & pathLinksFile)
     const auto links = ReadFile(pathLinksFile);
     if (links.empty())
     {
-        THROW_EXCEPTION(L"Graph has no links");
+        THROW_EXCEPTION("Graph has no links");
     }
 
     {
@@ -194,12 +194,12 @@ void CLayout::load_weights(const fs::path & pathWeightsFile)
     const auto weights = ReadFile(pathWeightsFile);
     if (weights.empty())
     {
-        THROW_EXCEPTION(L"Has no weights");
+        THROW_EXCEPTION("Has no weights");
     }
 
     if (weights.size() != m_vecBodies.size())
     {
-        THROW_EXCEPTION(L"Wrong weights for current graph");
+        THROW_EXCEPTION("Wrong weights for current graph");
     }
 
     #pragma omp parallel for
@@ -355,7 +355,7 @@ bool CLayout::step()
 
     if (g_Settings.is_verbose())
     {
-        std::wcout << totalMovement << L" move" << std::endl;
+        std::cout << totalMovement << " move" << std::endl;
     }
 
     return totalMovement < LayoutSettings::stableThreshold;

@@ -1,9 +1,6 @@
-// ngraph2.cpp : Defines the entry point for the console application.
-//
+#include <stdafx.h>
 
-#include "stdafx.h"
-
-#include "application.h"
+#include <application.h>
 
 int main(const int argc, const char* argv[])
 {
@@ -16,15 +13,15 @@ int main(const int argc, const char* argv[])
     }
     catch (const base_exception& e)
     {
-        std::wcout << L"[Error] base_exception = " << e.get_message() << std::endl;
+        std::cout << "[Error] base_exception = " << e.get_message() << std::endl;
     }
     catch (const std::exception& e)
     {
-        std::cout << L"[Error] std::exception = " << e.what() << std::endl;
+        std::cout << "[Error] std::exception = " << e.what() << std::endl;
     }
     catch (...)
     {
-        std::cout << L"[Critical] Unknown exception" << std::endl;
+        std::cout << "[Critical] Unknown exception" << std::endl;
     }
 
     return nExitCode;

@@ -9,24 +9,24 @@ class base_exception
 {
 public:
     explicit base_exception(
-        const std::wstring& _Message)
+        const std::string& _Message)
         : std::runtime_error("base_exception")
         , _msg(_Message)
     {
     }
 
-    std::wstring get_message() const
+    std::string get_message() const
     {
         return _msg;
     }
 
 private:
-    std::wstring _msg;
+    std::string _msg;
 };
 
 #define THROW_EXCEPTION(msg) \
 { \
-    std::wstringstream wss; \
-    wss << msg; \
-    throw base_exception(wss.str()); \
+    std::stringstream ss; \
+    ss << msg; \
+    throw base_exception(ss.str()); \
 }

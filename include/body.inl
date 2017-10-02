@@ -1,4 +1,3 @@
-#include "..\include\body.h"
 
 inline void CBody::set_position(const Vector3 & pos)
 {

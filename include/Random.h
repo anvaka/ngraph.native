@@ -2,8 +2,6 @@
 #include <cstdlib>
 #include <chrono>
 
-using namespace std::chrono;
-
 class CRandom 
 {
 public:
@@ -13,7 +11,9 @@ public:
     }
 
     CRandom() {
-        m_nSeed = duration_cast< milliseconds >(system_clock::now().time_since_epoch()).count();
+        m_nSeed = 
+			std::chrono::duration_cast<std::chrono::milliseconds >(
+			    std::chrono::system_clock::now().time_since_epoch()).count();
     }
 
     double nextDouble()
