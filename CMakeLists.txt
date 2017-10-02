@@ -2,6 +2,16 @@ cmake_minimum_required(VERSION 2.8)
 
 project(links++)
 
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCXX)
+	set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+endif()
+
 set(BOOST_ROOT "D:\\Source\\library\\boost_1_65_1")
 set(Boost_USE_STATIC_LIBS FALSE)
 set(Boost_USE_STATIC_RUNTIME FALSE)

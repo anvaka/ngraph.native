@@ -8,5 +8,5 @@ Unfortunately I don't have bindings to nodejs (yet).
 > git clone https://github.com/anvaka/ngraph.native<br>
 > mkdir bin<br>
 > cd bin<br>
-> cmake ../ngraph.native -DBOOST_ROOT=/usr/include/<br>
+> cmake ../ngraph.native -DBOOST_ROOT=/usr/include/ -DCMAKE_BUILD_TYPE=Release<br>
 > make
