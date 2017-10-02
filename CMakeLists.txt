@@ -2,10 +2,15 @@ cmake_minimum_required(VERSION 2.8)
 
 project(links++)
 
-set(CMAKE_CXX_STANDARD 11)
 set(BOOST_ROOT "D:\\Source\\library\\boost_1_65_1")
-find_package(OpenMP)
-find_package(Boost REQUIRED)
+set(Boost_USE_STATIC_LIBS FALSE)
+set(Boost_USE_STATIC_RUNTIME FALSE)
+
+find_package(OpenMP REQUIRED)
+find_package(Boost REQUIRED
+	COMPONENTS
+	system filesystem
+)
 
 FILE(GLOB MY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp 
 					 ${CMAKE_CURRENT_SOURCE_DIR}/src/*.inl)
@@ -21,7 +26,20 @@ if (OPENMP_FOUND)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 if (Boost_FOUND)
+	message(status "** Boost Include: ${Boost_INCLUDE_DIR}")
+	message(status "** Boost Library Dirs: ${Boost_LIBRARY_DIRS}")
+	message(status "** Boost Libraries: ${Boost_LIBRARIES}")
+	
+	if (WIN32)
+	  add_definitions( -DBOOST_ALL_NO_LIB )
+	  add_definitions( -DBOOST_ALL_DYN_LINK )
+	endif()
+
 	include_directories(${Boost_INCLUDE_DIRS})
-	target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
+	link_libraries(${Boost_LIBRARY_DIRS})
 endif()
+
+target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})

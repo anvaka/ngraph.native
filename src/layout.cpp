@@ -8,7 +8,7 @@ using FileContent = std::vector<int>;
 FileContent ReadFile(const fs::path& path)
 {
     FileContent content;
-    std::ifstream file(path, std::ios::binary | std::ios::ate);
+    std::ifstream file(path.string(), std::ios::binary | std::ios::ate);
     if (!file.is_open())
     {
         THROW_EXCEPTION(L"Cant open file = " << path);
@@ -35,7 +35,7 @@ CLayout::CLayout()
 
 void CLayout::serialize_to_file()
 {
-    std::ofstream outfile(g_Settings.get_save_positions_file(), std::ofstream::binary);
+    std::ofstream outfile(g_Settings.get_save_positions_file().string(), std::ofstream::binary);
 
     for (const auto& body : m_vecBodies)
     {
@@ -58,10 +58,10 @@ void CLayout::serialize_to_file(size_t iteration)
         auto filename = path.filename();
         auto stem = filename.stem().string() + "_" + std::to_string(iteration);
 
-        path.replace_filename(fs::path(stem).replace_extension(filename.extension()));
+        filename.parent_path() / fs::path(stem).replace_extension(filename.extension());
     }
 
-    std::ofstream outfile(path, std::ofstream::binary);
+    std::ofstream outfile(path.string(), std::ofstream::binary);
 
     for (const auto& body : m_vecBodies)
     {
