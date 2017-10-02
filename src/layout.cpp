@@ -58,7 +58,7 @@ void CLayout::serialize_to_file(size_t iteration)
         auto filename = path.filename();
         auto stem = filename.stem().string() + "_" + std::to_string(iteration);
 
-        filename.parent_path() / fs::path(stem).replace_extension(filename.extension());
+        path = filename.parent_path() / fs::path(stem).replace_extension(filename.extension());
     }
 
     std::ofstream outfile(path.string(), std::ofstream::binary);

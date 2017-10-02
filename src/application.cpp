@@ -146,7 +146,7 @@ size_t CApplication::get_iteration_start_from_name(
 bool CApplication::parse_options(const int argc, const char * argv[])
 {
     std::vector<std::string> args(&argv[1], &argv[argc]);
-    for (int i = 0; i < args.size(); ++i)
+    for (size_t i = 0; i < args.size(); ++i)
     {
         const auto& arg = args[i];
 
