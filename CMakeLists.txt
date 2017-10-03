@@ -22,10 +22,9 @@ find_package(Boost REQUIRED
 	system filesystem
 )
 
-FILE(GLOB MY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp 
-					 ${CMAKE_CURRENT_SOURCE_DIR}/src/*.inl)
-FILE(GLOB MY_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
-
+FILE(GLOB MY_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+FILE(GLOB MY_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h
+					 ${CMAKE_CURRENT_SOURCE_DIR}/include/*.inl)
 
 add_executable(${PROJECT_NAME} ${MY_SOURCES} ${MY_HEADERS})
 
