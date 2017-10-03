@@ -18,12 +18,8 @@ public:
     CBody *body;
     double mass;
     Vector3 massVector;
-    double left;
-    double right;
-    double top;
-    double bottom;
-    double front;
-    double back;
+    Vector3 start;
+    Vector3 end;
 
     void reset() 
     {
@@ -31,7 +27,8 @@ public:
         body = NULL;
         massVector.reset();
         mass = 0;
-        left = right = top = bottom = front = back = 0;
+        start.reset();
+        end.reset();
     }
 
     static void* operator new(size_t)

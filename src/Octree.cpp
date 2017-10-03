@@ -5,86 +5,92 @@
 COctreeNode::AllocPool_t COctreeNode::m_AllocPool{ 4096, 0 };
 
 COctreeNode *COctree::createRootNode(std::vector<CBody> &bodies) {
-    double x1 = INT32_MAX, x2 = INT32_MIN,
-        y1 = INT32_MAX, y2 = INT32_MIN,
-        z1 = INT32_MAX, z2 = INT32_MIN;
+    double end_pos[4]{ INT32_MIN, INT32_MIN, INT32_MIN, 1. };
+    double start_pos[4]{ INT32_MAX, INT32_MAX, INT32_MAX, 1. };
 
     for (const auto& body : bodies)
     {
         const auto& pos = body.get_position();
-        if (pos.x < x1) x1 = pos.x;
-        if (pos.x > x2) x2 = pos.x;
+        bool start_res[coord::num], end_res[coord::num];
+        pos.is_less(start_pos, start_res);
+        pos.is_great(end_pos, end_res);
 
-        if (pos.y < y1) y1 = pos.y;
-        if (pos.y > y2) y2 = pos.y;
+        for (int i = 0; i < coord::num; ++i)
+        {
+            if (start_res[i])
+                start_pos[i] = pos[i];
 
-        if (pos.z < z1) z1 = pos.z;
-        if (pos.z > z2) z2 = pos.z;
+            if (end_res[i])
+                end_pos[i] = pos[i];
+        }
     }
 
     // squarify bounds:
-    double maxSide = std::max(x2 - x1, std::max(y2 - y1, z2 - z1));
+    Vector3 v_end_pos{ end_pos };
+    Vector3 v_start_pos{ start_pos };
 
-    if (maxSide == 0) {
+    const Vector3 diff = v_end_pos - v_start_pos;
+    double maxSide = std::max(diff[X], std::max(diff[Y], diff[Z]));
+
+    if (maxSide == 0.) {
         maxSide = bodies.size() * 500;
-        x1 -= maxSide;
-        y1 -= maxSide;
-        z1 -= maxSide;
-        x2 += maxSide;
-        y2 += maxSide;
-        z2 += maxSide;
+        v_start_pos -= maxSide;
+        v_end_pos += maxSide;
     }
     else {
-        x2 = x1 + maxSide;
-        y2 = y1 + maxSide;
-        z2 = z1 + maxSide;
+        v_end_pos = v_start_pos + maxSide;
     }
 
     COctreeNode *root = treeNodes.get();
-    root->left = x1;
-    root->right = x2;
-    root->top = y1;
-    root->bottom = y2;
-    root->back = z1;
-    root->front = z2;
+    root->start = v_start_pos;
+    root->end = v_end_pos;
 
     return root;
 }
 
 bool COctree::insert(CBody *body, COctreeNode *node) {
-    const auto& pos = body->get_position();
+    auto& pos = body->get_position();
     if (!node->body)
     {
         // This is internal node. Update the total mass of the node and center-of-mass.
         const auto mass = body->get_mass();
+        node->massVector += pos * mass;
         node->mass += mass;
-        node->massVector.x += mass * pos.x;
-        node->massVector.y += mass * pos.y;
-        node->massVector.z += mass * pos.z;
         // Recursively insert the body in the appropriate quadrant.
         // But first find the appropriate quadrant.
         int quadIdx = 0; // Assume we are in the 0's quad.
-        double left = node->left,
-            right = (node->right + left) / 2,
-            top = node->top,
-            bottom = (node->bottom + top) / 2,
-            back = node->back,
-            front = (node->front + back) / 2;
 
-        if (pos.x > right) { // somewhere in the eastern part.
+        Vector3 new_start{ node->start };
+        Vector3 new_end{ (node->end + node->start) / 2. };
+        double  left = new_start[X],
+                top = new_start[Y],
+                back = new_start[Z],
+                right = new_end[X],
+                bottom = new_end[Y],
+                front = new_end[Z];
+
+        bool greats[coord::num];
+        pos.is_great(new_end, greats);
+
+        if (greats[X]) // somewhere in the eastern part.
+        {
             quadIdx += 1;
             left = right;
-            right = node->right;
+            right = node->end[X];
         }
-        if (pos.y > bottom) { // and in south.
+
+        if (greats[Y]) // and in south.
+        {
             quadIdx += 2;
             top = bottom;
-            bottom = node->bottom;
+            bottom = node->end[Y];
         }
-        if (pos.z > front) { // and in frontal part
+
+        if (greats[Z]) // and in frontal part
+        {
             quadIdx += 4;
             back = front;
-            front = node->front;
+            front = node->end[Z];
         }
 
         COctreeNode *child = node->childs[quadIdx];
@@ -93,12 +99,9 @@ bool COctree::insert(CBody *body, COctreeNode *node) {
 
         // The node is internal but this quadrant is not taken. Add subnode to it.
         child = treeNodes.get();
-        child->left = left;
-        child->top = top;
-        child->right = right;
-        child->bottom = bottom;
-        child->back = back;
-        child->front = front;
+        child->start = { left, top, back };
+        child->end = { right, bottom, front };
+
         child->body = body;
         node->childs[quadIdx] = child;
         return true;
@@ -116,17 +119,10 @@ bool COctree::insert(CBody *body, COctreeNode *node) {
         int retriesCount = 3;
         do 
         {
-            const double offset = random.nextDouble(),
-                dx = (node->right - node->left) * offset,
-                dy = (node->bottom - node->top) * offset,
-                dz = (node->front - node->back) * offset;
+            const double offset = random.nextDouble();
+            const Vector3 diff = (node->end - node->start) * offset;
 
-            oldBody->set_position(
-                Vector3{
-                    node->left + dx,
-                    node->top + dy,
-                    node->back + dz
-                });
+            oldBody->set_position(node->start + diff);
             // Make sure we don't bump it out of the box. If we do, next iteration should fix it
         } while (--retriesCount > 0 && old_pos.sameAs(pos));
 
@@ -163,17 +159,16 @@ void COctree::updateBodyForce(CBody& sourceBody)
     const auto& src_pos = sourceBody.get_position();
     const double src_mass = sourceBody.get_mass();
 
-    double fx = 0, fy = 0, fz = 0;
+    Vector3 coordForce;
 
     std::stack<COctreeNode *, std::vector<COctreeNode *>> queue;
     queue.emplace(root);
     while (!queue.empty())
-    {
+    { 
         COctreeNode* node = queue.top(); queue.pop();
 
         CBody *body = node->body;
-        bool differentBody = !(*body == sourceBody);
-        if (!differentBody)
+        if (*body == sourceBody)
             continue;
 
         Vector3 start_pos;
@@ -183,45 +178,35 @@ void COctree::updateBodyForce(CBody& sourceBody)
         }
         else
         {
-            start_pos = Vector3{
-                node->massVector.x / node->mass,
-                node->massVector.y / node->mass,
-                node->massVector.z / node->mass
-            };
+            start_pos = node->massVector / node->mass;
         }
-            
-        double dx = start_pos.x - src_pos.x;
-        double dy = start_pos.y - src_pos.y;
-        double dz = start_pos.z - src_pos.z;
 
-        double r = sqrt(dx * dx + dy * dy + dz * dz);
+        Vector3 diff = start_pos - src_pos;
+        double r = sqrt((diff * diff).summ_elem());
 
-        if (r == 0) {
-            dx = (random.nextDouble() - 0.5) / 50;
-            dy = (random.nextDouble() - 0.5) / 50;
-            dz = (random.nextDouble() - 0.5) / 50;
-            r = sqrt(dx * dx + dy * dy + dz * dz);
+        if (r == 0) 
+        {
+            diff = Vector3{ random.nextDouble(),random.nextDouble(), random.nextDouble() };
+            diff = (diff - Vector3{ 0.5 }) / Vector3{ 50.0 };
+
+            r = sqrt((diff * diff).summ_elem());
         }
 
         if (body)
         {
             const double v = LayoutSettings::gravity * body->get_mass() * src_mass / (r * r * r);
-            fx += v * dx;
-            fy += v * dy;
-            fz += v * dz;
+            coordForce += diff * v;
         }
         else
         {
             // If s / r < θ, treat this internal node as a single body, and calculate the
             // force it exerts on sourceBody, and add this amount to sourceBody's net force.
-            if ((node->right - node->left) / r < LayoutSettings::theta) {
+            if (((node->end[X] - node->start[X]) / r) < LayoutSettings::theta) {
                 // in the if statement above we consider node's width only
                 // because the region was squarified during tree creation.
                 // Thus there is no difference between using width or height.
                 const double v = LayoutSettings::gravity * node->mass * src_mass / (r * r * r);
-                fx += v * dx;
-                fy += v * dy;
-                fz += v * dz;
+                coordForce += diff * v;
             }
             else {
                 // Otherwise, run the procedure recursively on each of the current node's children.
@@ -234,15 +219,8 @@ void COctree::updateBodyForce(CBody& sourceBody)
                 }
             }
         }
-        
     }
 
-    const auto& force = sourceBody.get_force();
-    sourceBody.set_force(
-        Vector3 {
-            force.x + fx,
-            force.y + fy,
-            force.z + fz
-        });
+    sourceBody.set_force(coordForce);
 }
 

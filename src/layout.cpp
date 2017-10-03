@@ -37,13 +37,13 @@ void CLayout::serialize_to_file()
 {
     std::ofstream outfile(g_Settings.get_save_positions_file().string(), std::ofstream::binary);
 
-    for (const auto& body : m_vecBodies)
+    for (auto& body : m_vecBodies)
     {
-        const auto& pos = body.get_position();
-        const int triplet[3]{
-            static_cast<int>(floor(pos.x + 0.5)),
-            static_cast<int>(floor(pos.y + 0.5)),
-            static_cast<int>(floor(pos.z + 0.5))
+        auto& pos = body.get_position();
+        const int triplet[coord::num]{
+            static_cast<int>(floor(pos[X] + 0.5)),
+            static_cast<int>(floor(pos[Y] + 0.5)),
+            static_cast<int>(floor(pos[Z] + 0.5))
         };
         outfile.write((const char *)&triplet, sizeof(triplet));
     }
@@ -63,13 +63,13 @@ void CLayout::serialize_to_file(size_t iteration)
 
     std::ofstream outfile(path.string(), std::ofstream::binary);
 
-    for (const auto& body : m_vecBodies)
+    for (auto& body : m_vecBodies)
     {
-        const auto& pos = body.get_position();
-        const int triplet[3]{
-            static_cast<int>(floor(pos.x + 0.5)),
-            static_cast<int>(floor(pos.y + 0.5)),
-            static_cast<int>(floor(pos.z + 0.5))
+        auto& pos = body.get_position();
+        const int triplet[coord::num]{
+            static_cast<int>(floor(pos[X] + 0.5)),
+            static_cast<int>(floor(pos[Y] + 0.5)),
+            static_cast<int>(floor(pos[Z] + 0.5))
         };
         outfile.write((const char *)&triplet, sizeof(triplet));
     }
@@ -177,7 +177,7 @@ void CLayout::load_positions(const fs::path & pathPositionsFile)
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         m_vecBodies[i].set_position(
@@ -206,7 +206,7 @@ void CLayout::load_weights(const fs::path & pathWeightsFile)
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         m_vecBodies[i].set_mass(weights[i]);
@@ -222,12 +222,8 @@ void CLayout::init_positions()
         auto& body = m_vecBodies[i];
         if (!body.get_position().is_initialized())
         {
-            body.set_position(
-                Vector3{
-                    m_Random.nextDouble() * log(maxBodyId) * 100,
-                    m_Random.nextDouble() * log(maxBodyId) * 100,
-                    m_Random.nextDouble() * log(maxBodyId) * 100
-                });
+            const Vector3 pos = Vector3{ m_Random.nextDouble(),m_Random.nextDouble(), m_Random.nextDouble() };
+            body.set_position(pos * (log(maxBodyId) * 100.0));
         }
         const Vector3& sourcePos = body.get_position();
         // init neighbours position:
@@ -235,12 +231,13 @@ void CLayout::init_positions()
         {
             if (!m_vecBodies[spring].get_position().is_initialized())
             {
-                m_vecBodies[spring].set_position(
-                    Vector3{
-                        sourcePos.x + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
-                        sourcePos.y + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
-                        sourcePos.z + m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2
-                    });
+                const Vector3 add_coeff{
+                    m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
+                    m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2,
+                    m_Random.next(LayoutSettings::springLength) - LayoutSettings::springLength / 2
+                };
+
+                m_vecBodies[spring].set_position(sourcePos + add_coeff);
             }
         }
     }
@@ -252,7 +249,7 @@ void CLayout::init_weights()
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         auto& body = m_vecBodies[i];
@@ -268,7 +265,7 @@ void CLayout::accumulate()
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         CBody& body = m_vecBodies[i];
@@ -282,7 +279,7 @@ void CLayout::accumulate()
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         updateSpringForce(m_vecBodies[i]);
@@ -291,60 +288,47 @@ void CLayout::accumulate()
 
 double CLayout::integrate()
 {
-    double dx = 0, tx = 0,
-    dy = 0, ty = 0,
-    dz = 0, tz = 0;
+    std::vector<Vector3> vecT(m_vecBodies.size());
 
-    //dx should be private or defined inside loop
-    //tx need to be reduction variable, or its value will be unpredictable.
-    #pragma omp parallel for reduction(+:tx,ty,tz) private(dx,dy,dz)
+    #pragma omp parallel for
     #if _OPENMP >= 200805
     for (size_t i = 0; i < m_vecBodies.size(); ++i)
     #else
-    for (int i = 0; i < m_vecBodies.size(); ++i)
+    for (int64_t i = 0; i < m_vecBodies.size(); ++i)
     #endif
     {
         CBody& body = m_vecBodies[i];
-        const double coeff = LayoutSettings::timeStep / body.get_mass();
+        const double coeff_v = LayoutSettings::timeStep / body.get_mass();
+
         const auto& pos = body.get_position();
         const auto& velocity = body.get_velocity();
         const auto& force = body.get_force();
 
-        body.set_velocity(
-            Vector3 {
-                velocity.x + coeff * force.x,
-                velocity.y + coeff * force.y,
-                velocity.z + coeff * force.z
-            }
-        );
+        body.set_velocity(velocity + force * coeff_v);
 
-        double vx = velocity.x,
-            vy = velocity.y,
-            vz = velocity.z,
-            v = sqrt(vx * vx + vy * vy + vz * vz);
+        const double v = sqrt((velocity * velocity).summ_elem());
 
-        if (v > 1) {
-            body.set_velocity(
-                Vector3{ vx / v, vy / v, vz / v }
-            );
+        if (v > 1) 
+        {
+            body.set_velocity(velocity / v);
         }
 
-        dx = LayoutSettings::timeStep * velocity.x;
-        dy = LayoutSettings::timeStep * velocity.y;
-        dz = LayoutSettings::timeStep * velocity.z;
+        const Vector3 diff = velocity * LayoutSettings::timeStep;
 
-        body.set_position(
-            Vector3 {
-                pos.x + dx,
-                pos.y + dy,
-                pos.z + dz
-            }
-        );
+        body.set_position(pos + diff);
 
-        tx += abs(dx); ty += abs(dy); tz += abs(dz);
+        vecT[i] = Vector3{
+            std::abs(diff[X]),
+            std::abs(diff[Y]),
+            std::abs(diff[Z])
+        };
     }
 
-    return (tx * tx + ty * ty + tz * tz)/m_vecBodies.size();
+    Vector3 t;
+    for (const auto& v : vecT)
+        t += v;
+
+    return (t * t).summ_elem()/m_vecBodies.size();
 }
 
 bool CLayout::step()
@@ -364,47 +348,27 @@ bool CLayout::step()
 void CLayout::updateSpringForce(CBody& source) 
 {
     const auto& src_pos = source.get_position();
+    const auto& src_force = source.get_force();
     for(int spring : source.get_springs())
     {
         CBody& body2 = m_vecBodies[spring];
         const auto& dst_pos = body2.get_position();
-        double dx = dst_pos.x - src_pos.x;
-        double dy = dst_pos.y - src_pos.y;
-        double dz = dst_pos.z - src_pos.z;
-        double r = sqrt(dx * dx + dy * dy + dz * dz);
+        Vector3 diff = dst_pos - src_pos;
+        double r = sqrt((diff * diff).summ_elem());
 
         if (r == 0) 
         {
-            dx = (m_Random.nextDouble() - 0.5) / 50;
-            dy = (m_Random.nextDouble() - 0.5) / 50;
-            dz = (m_Random.nextDouble() - 0.5) / 50;
-            r = sqrt(dx * dx + dy * dy + dz * dz);
+            diff = Vector3{ m_Random.nextDouble(),m_Random.nextDouble(), m_Random.nextDouble() };
+            diff = (diff - Vector3{ 0.5 }) / Vector3{ 50.0 };
+
+            r = sqrt((diff * diff).summ_elem());
         }
 
         const double d = r - LayoutSettings::springLength;
-        const double coeff = LayoutSettings::springCoeff * d / r;
+        const double coeff_v = LayoutSettings::springCoeff * d / r;
 
-        {
-            const auto& force = source.get_force();
-            source.set_force(
-                Vector3 {
-                    force.x + coeff * dx,
-                    force.y + coeff * dy,
-                    force.z + coeff * dz
-                }
-            );
-        }
-
-        {
-            const auto& force = body2.get_force();
-            body2.set_force(
-                Vector3 {
-                    force.x - coeff * dx,
-                    force.y - coeff * dy,
-                    force.z - coeff * dz
-                }
-            );
-        }
+        source.set_force(src_force + diff * coeff_v);
+        body2.set_force(body2.get_force() - diff * coeff_v);
     }
 }
 
@@ -412,10 +376,5 @@ void CLayout::updateDragForce(CBody& body)
 {
     const auto& force = body.get_force();
     const auto& velocity = body.get_velocity();
-    body.set_force(
-        Vector3 {
-            force.x - LayoutSettings::dragCoeff * velocity.x,
-            force.y - LayoutSettings::dragCoeff * velocity.y,
-            force.z - LayoutSettings::dragCoeff * velocity.z
-        });
+    body.set_force(force - velocity * LayoutSettings::dragCoeff);
 }
