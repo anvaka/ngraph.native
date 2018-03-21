@@ -56,7 +56,7 @@ void Layout::setDefaultBodiesPositions() {
       bodies[i].setPos(initialPos);
     }
     Vector3 *sourcePos = &(body->pos);
-    // init neighbours position:
+    // init neighbors position:
     for (size_t j = 0; j < body->springs.size(); ++j) {
       if (!bodies[body->springs[j]].positionInitialized()) {
         Vector3 neighbourPosition(
@@ -110,7 +110,7 @@ void Layout::initBodies(int* links, long size) {
     }
   }
 
-  // Finally, update body mass based on total number of neighbours:
+  // Finally, update body mass based on total number of neighbors:
   for (size_t i = 0; i < bodies.size(); i++) {
     Body *body = &(bodies[i]);
     body->mass = 1 + (body->springs.size() + body->incomingCount)/3.0;
