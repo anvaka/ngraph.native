@@ -5,3 +5,7 @@ bin/*
 ## Object Files
 obj/*
 !obj/.keep
+
+## All positions produced
+data/*
+!data.keep
