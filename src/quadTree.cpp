@@ -12,6 +12,8 @@
 #include "quadTree.h"
 #include <cmath>
 
+using namespace std;
+
 NotEnoughQuadSpaceException  _NotEnoughQuadSpaceException;
 
 QuadTreeNode *QuadTree::createRootNode(std::vector<Body> &bodies) {

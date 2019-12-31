@@ -11,6 +11,8 @@
 #include <cmath>
 #include <map>
 
+using namespace std;
+
 Layout::Layout() :tree(settings) {}
 
 void Layout::init(int* links, long size) {
