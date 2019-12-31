@@ -254,4 +254,3 @@ void QuadTree::updateBodyForce(Body *sourceBody) {
   sourceBody->force.y += fy;
   sourceBody->force.z += fz;
 }
-
