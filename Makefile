@@ -20,5 +20,5 @@ obj/main.o: src/main.cpp include/layout.h include/quadTree.h include/Random.h in
 #---------------------------
 # Executables
 #---------------------------
-bin/layout: obj/layout.o obj/quadTree.o obj/main.o include/layout.h include/primitives.h include/quadTree.h include/Random.h
+bin/layout: obj/layout.o obj/quadTree.o obj/main.o
 	g++ $(CFLAGS) -o bin/layout++ obj/quadTree.o obj/layout.o obj/main.o
