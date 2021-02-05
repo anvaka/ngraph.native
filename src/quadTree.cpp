@@ -12,6 +12,8 @@
 #include "quadTree.h"
 #include <cmath>
 
+using namespace std;
+
 NotEnoughQuadSpaceException  _NotEnoughQuadSpaceException;
 
 QuadTreeNode *QuadTree::createRootNode(std::vector<Body> &bodies) {
@@ -254,4 +256,3 @@ void QuadTree::updateBodyForce(Body *sourceBody) {
   sourceBody->force.y += fy;
   sourceBody->force.z += fz;
 }
-
