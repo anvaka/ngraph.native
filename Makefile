@@ -1,4 +1,4 @@
-CFLAGS ?= -std=c++11 -g -Wall -Wextra -Wpedantic -Iinclude #-fopenmp
+CFLAGS ?= -std=c++11 -g -Wall -Wextra -Wpedantic -Iinclude -fopenmp
 
 all: bin/layout \
 
