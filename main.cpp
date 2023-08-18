@@ -72,7 +72,7 @@ int getIterationNumberFromPositionFileName(const char *positionFileName) {
 int main(int argc, const char * argv[]) {
     if (argc < 2) {
         cout << "Usage: " << endl
-        << "  layout++ links.bin [positions.bin]" << endl
+        << "  " << argv[0]<< " links.bin [positions.bin]" << endl
         << "Where" << endl
         << " `links.bin` is a path to the serialized graph. See " << endl
         << "    https://github.com/anvaka/ngraph.tobinary for format description" << endl
