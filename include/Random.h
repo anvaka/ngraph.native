@@ -12,8 +12,6 @@
 #include <cstdlib>
 #include <chrono>
 
-using namespace std::chrono;
-
 class Random {
   long seed;
 public:
@@ -21,7 +19,7 @@ public:
   }
 
   Random() {
-    seed = duration_cast< milliseconds >(system_clock::now().time_since_epoch()).count();
+    seed = std::chrono::duration_cast< std::chrono::milliseconds >(std::chrono::system_clock::now().time_since_epoch()).count();
   }
   
   double nextDouble() {
