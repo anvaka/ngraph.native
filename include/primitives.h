@@ -11,8 +11,6 @@
 #include <cmath>        // std::abs
 #include <vector>
 
-using namespace std;
-
 struct LayoutSettings {
   double stableThreshold = 0.009;
   double gravity = -1.2;
@@ -54,7 +52,7 @@ struct Body {
   Vector3 velocity;
   double mass = 1.0;
 
-  vector<int> springs; // these are outgoing connections.
+  std::vector<int> springs; // these are outgoing connections.
   // This is just a number of incoming connections for this body,
   // so we can count its mass appropriately.
   int incomingCount = 0;
@@ -71,6 +69,6 @@ struct Body {
     return pos.x != 0 || pos.y != 0 || pos.z != 0;
   }
 };
-class NotEnoughQuadSpaceException: public exception {};
+class NotEnoughQuadSpaceException: public std::exception {};
 
 #endif

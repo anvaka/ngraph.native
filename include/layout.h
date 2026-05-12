@@ -14,11 +14,9 @@
 #include "quadTree.h"
 #include "Random.h"
 
-using namespace std;
-
 class Layout {
   Random random;
-  vector<Body> bodies;
+  std::vector<Body> bodies;
   LayoutSettings settings;
   QuadTree tree;
   
@@ -39,7 +37,7 @@ public:
   void setBodiesWeight(int *weights);
   bool step();
   size_t getBodiesCount();
-  vector<Body> *getBodies() { return &bodies; };
+  std::vector<Body> *getBodies() { return &bodies; };
 };
 
 #endif /* defined(__layout____layout__) */

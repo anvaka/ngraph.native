@@ -13,7 +13,7 @@ using namespace std;
 void save(int i, std::vector<Body> *bodies) {
     std::stringstream ss;
 
-    ss << i << ".bin";
+    ss << "data/" << i << ".bin";
     std::ofstream outfile (ss.str(), std::ofstream::binary);
 
     char block[3 * 4];
